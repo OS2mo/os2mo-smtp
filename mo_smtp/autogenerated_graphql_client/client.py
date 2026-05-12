@@ -132,8 +132,7 @@ def gql(q: str) -> str:
 
 class GraphQLClient(AsyncBaseClient):
     async def manager_data(self, uuid: UUID) -> ManagerDataManagers:
-        query = gql(
-            """
+        query = gql("""
             query managerData($uuid: UUID!) {
               managers(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
@@ -148,16 +147,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ManagerData.parse_obj(data).managers
 
     async def employee_data(self, uuid: UUID) -> EmployeeDataEmployees:
-        query = gql(
-            """
+        query = gql("""
             query employeeData($uuid: UUID!) {
               employees(filter: {uuids: [$uuid]}) {
                 objects {
@@ -182,16 +179,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return EmployeeData.parse_obj(data).employees
 
     async def employee_name(self, uuid: UUID) -> EmployeeNameEmployees:
-        query = gql(
-            """
+        query = gql("""
             query employeeName($uuid: UUID!) {
               employees(filter: {uuids: [$uuid]}) {
                 objects {
@@ -201,16 +196,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return EmployeeName.parse_obj(data).employees
 
     async def org_unit_ancestors(self, uuid: UUID) -> OrgUnitAncestorsOrgUnits:
-        query = gql(
-            """
+        query = gql("""
             query orgUnitAncestors($uuid: UUID!) {
               org_units(filter: {uuids: [$uuid]}) {
                 objects {
@@ -225,16 +218,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitAncestors.parse_obj(data).org_units
 
     async def org_unit_data(self, uuid: UUID) -> OrgUnitDataOrgUnits:
-        query = gql(
-            """
+        query = gql("""
             query orgUnitData($uuid: UUID!) {
               org_units(filter: {uuids: [$uuid]}) {
                 objects {
@@ -248,16 +239,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitData.parse_obj(data).org_units
 
     async def address_data(self, uuid: UUID) -> AddressDataAddresses:
-        query = gql(
-            """
+        query = gql("""
             query addressData($uuid: UUID!) {
               addresses(filter: {uuids: [$uuid]}) {
                 objects {
@@ -271,16 +260,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return AddressData.parse_obj(data).addresses
 
     async def org_unit_relations(self, uuid: UUID) -> OrgUnitRelationsOrgUnits:
-        query = gql(
-            """
+        query = gql("""
             query orgUnitRelations($uuid: UUID!) {
               org_units(filter: {uuids: [$uuid]}) {
                 objects {
@@ -304,8 +291,7 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -314,8 +300,7 @@ class GraphQLClient(AsyncBaseClient):
     async def institution_address(
         self, uuid: UUID, root: UUID
     ) -> InstitutionAddressOrgUnits:
-        query = gql(
-            """
+        query = gql("""
             query institutionAddress($uuid: UUID!, $root: UUID!) {
               org_units(filter: {parent: {uuids: [$root]}, descendant: {uuids: [$uuid]}}) {
                 objects {
@@ -327,16 +312,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid, "root": root}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return InstitutionAddress.parse_obj(data).org_units
 
     async def org_unit_address(self, uuid: UUID) -> OrgUnitAddressOrgUnits:
-        query = gql(
-            """
+        query = gql("""
             query orgUnitAddress($uuid: UUID!) {
               org_units(filter: {uuids: [$uuid]}) {
                 objects {
@@ -348,8 +331,7 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -358,8 +340,7 @@ class GraphQLClient(AsyncBaseClient):
     async def related_unit_registrations(
         self, uuid: UUID
     ) -> RelatedUnitRegistrationsRelatedUnits:
-        query = gql(
-            """
+        query = gql("""
             query relatedUnitRegistrations($uuid: UUID!) {
               related_units(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
@@ -380,37 +361,37 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return RelatedUnitRegistrations.parse_obj(data).related_units
 
     async def rolebinding(self, uuid: UUID) -> RolebindingRolebindings:
-        query = gql(
-            """
+        query = gql("""
             query rolebinding($uuid: UUID!) {
-              rolebindings(filter: {uuids: [$uuid]}) {
+              rolebindings(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
-                  current {
+                  validities {
                     ituser {
                       uuid
+                    }
+                    validity {
+                      from
+                      to
                     }
                   }
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return Rolebinding.parse_obj(data).rolebindings
 
     async def ituser_validities(self, uuid: UUID) -> ItuserValiditiesItusers:
-        query = gql(
-            """
+        query = gql("""
             query ituserValidities($uuid: UUID!) {
               itusers(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
@@ -438,16 +419,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ItuserValidities.parse_obj(data).itusers
 
     async def _testing__get_org_unit_type(self) -> TestingGetOrgUnitTypeClasses:
-        query = gql(
-            """
+        query = gql("""
             query _Testing_GetOrgUnitType {
               classes(filter: {facet_user_keys: "org_unit_type"}) {
                 objects {
@@ -455,8 +434,7 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -465,8 +443,7 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__get_email_address_type(
         self,
     ) -> TestingGetEmailAddressTypeFacets:
-        query = gql(
-            """
+        query = gql("""
             query _Testing_GetEmailAddressType {
               facets(filter: {user_keys: "employee_address_type"}) {
                 objects {
@@ -478,8 +455,7 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -488,8 +464,7 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__get_phone_address_type(
         self,
     ) -> TestingGetPhoneAddressTypeFacets:
-        query = gql(
-            """
+        query = gql("""
             query _Testing_GetPhoneAddressType {
               facets(filter: {user_keys: "employee_address_type"}) {
                 objects {
@@ -501,8 +476,7 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -511,8 +485,7 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__get_org_unit_address_type(
         self,
     ) -> TestingGetOrgUnitAddressTypeFacets:
-        query = gql(
-            """
+        query = gql("""
             query _Testing_GetOrgUnitAddressType {
               facets(filter: {user_keys: "org_unit_address_type"}) {
                 objects {
@@ -524,16 +497,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingGetOrgUnitAddressType.parse_obj(data).facets
 
     async def _testing__get_manager_level(self) -> TestingGetManagerLevelClasses:
-        query = gql(
-            """
+        query = gql("""
             query _Testing_GetManagerLevel {
               classes(filter: {facet_user_keys: "manager_level"}) {
                 objects {
@@ -541,16 +512,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingGetManagerLevel.parse_obj(data).classes
 
     async def _testing__get_manager_type(self) -> TestingGetManagerTypeClasses:
-        query = gql(
-            """
+        query = gql("""
             query _Testing_GetManagerType {
               classes(filter: {facet_user_keys: "manager_type"}) {
                 objects {
@@ -558,8 +527,7 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -568,8 +536,7 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__get_manager_responsibility(
         self,
     ) -> TestingGetManagerResponsibilityClasses:
-        query = gql(
-            """
+        query = gql("""
             query _Testing_GetManagerResponsibility {
               classes(filter: {facet_user_keys: "responsibility"}) {
                 objects {
@@ -577,16 +544,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingGetManagerResponsibility.parse_obj(data).classes
 
     async def _testing__get_engagement_type(self) -> TestingGetEngagementTypeFacets:
-        query = gql(
-            """
+        query = gql("""
             query _Testing_GetEngagementType {
               facets(filter: {user_keys: "engagement_type"}) {
                 objects {
@@ -598,16 +563,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingGetEngagementType.parse_obj(data).facets
 
     async def _testing__get_job_function(self) -> TestingGetJobFunctionFacets:
-        query = gql(
-            """
+        query = gql("""
             query _Testing_GetJobFunction {
               facets(filter: {user_keys: "engagement_job_function"}) {
                 objects {
@@ -619,16 +582,14 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingGetJobFunction.parse_obj(data).facets
 
     async def _testing__get_role_facet(self) -> TestingGetRoleFacetFacets:
-        query = gql(
-            """
+        query = gql("""
             query _Testing_GetRoleFacet {
               facets(filter: {user_keys: "role"}) {
                 objects {
@@ -636,8 +597,7 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -646,8 +606,7 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__get_related_units_for_org_unit(
         self, org_unit: UUID
     ) -> TestingGetRelatedUnitsForOrgUnitRelatedUnits:
-        query = gql(
-            """
+        query = gql("""
             query _Testing_GetRelatedUnitsForOrgUnit($org_unit: UUID!) {
               related_units(filter: {org_unit: {uuids: [$org_unit]}}) {
                 objects {
@@ -655,8 +614,7 @@ class GraphQLClient(AsyncBaseClient):
                 }
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"org_unit": org_unit}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -665,8 +623,7 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__create_org_unit_root(
         self, name: str, root_uuid: UUID, org_unit_type: UUID, from_: datetime
     ) -> TestingCreateOrgUnitRootOrgUnitCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateOrgUnitRoot($name: String!, $root_uuid: UUID!, $org_unit_type: UUID!, $from: DateTime!) {
               org_unit_create(
                 input: {uuid: $root_uuid, name: $name, org_unit_type: $org_unit_type, validity: {from: $from}}
@@ -674,8 +631,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "name": name,
             "root_uuid": root_uuid,
@@ -694,8 +650,7 @@ class GraphQLClient(AsyncBaseClient):
         from_: datetime,
         to: datetime | None | UnsetType = UNSET,
     ) -> TestingCreateOrgUnitOrgUnitCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateOrgUnit($name: String!, $parent: UUID!, $org_unit_type: UUID!, $from: DateTime!, $to: DateTime) {
               org_unit_create(
                 input: {name: $name, parent: $parent, org_unit_type: $org_unit_type, validity: {from: $from, to: $to}}
@@ -703,8 +658,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "name": name,
             "parent": parent,
@@ -719,15 +673,13 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__create_employee(
         self, first_name: str, last_name: str
     ) -> TestingCreateEmployeeEmployeeCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateEmployee($first_name: String!, $last_name: String!) {
               employee_create(input: {given_name: $first_name, surname: $last_name}) {
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "first_name": first_name,
             "last_name": last_name,
@@ -739,8 +691,7 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__create_address(
         self, person: UUID, value: str, address_type: UUID, from_: datetime
     ) -> TestingCreateAddressAddressCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateAddress($person: UUID!, $value: String!, $address_type: UUID!, $from: DateTime!) {
               address_create(
                 input: {person: $person, value: $value, address_type: $address_type, validity: {from: $from}}
@@ -748,8 +699,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "person": person,
             "value": value,
@@ -763,8 +713,7 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__create_org_unit_address(
         self, org_unit: UUID, value: str, address_type: UUID, from_: datetime
     ) -> TestingCreateOrgUnitAddressAddressCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateOrgUnitAddress($org_unit: UUID!, $value: String!, $address_type: UUID!, $from: DateTime!) {
               address_create(
                 input: {org_unit: $org_unit, value: $value, address_type: $address_type, validity: {from: $from}}
@@ -772,8 +721,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "org_unit": org_unit,
             "value": value,
@@ -792,8 +740,7 @@ class GraphQLClient(AsyncBaseClient):
         job_function: UUID,
         from_: datetime,
     ) -> TestingCreateEngagementEngagementCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateEngagement($orgunit: UUID!, $person: UUID!, $engagement_type: UUID!, $job_function: UUID!, $from: DateTime!) {
               engagement_create(
                 input: {org_unit: $orgunit, engagement_type: $engagement_type, job_function: $job_function, person: $person, validity: {from: $from}}
@@ -801,8 +748,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "orgunit": orgunit,
             "person": person,
@@ -824,8 +770,7 @@ class GraphQLClient(AsyncBaseClient):
         person: UUID | None | UnsetType = UNSET,
         to: datetime | None | UnsetType = UNSET,
     ) -> TestingCreateManagerManagerCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateManager($orgunit: UUID!, $person: UUID, $manager_level: UUID!, $manager_type: UUID!, $responsibility: UUID!, $from: DateTime!, $to: DateTime) {
               manager_create(
                 input: {org_unit: $orgunit, manager_level: $manager_level, manager_type: $manager_type, responsibility: [$responsibility], person: $person, validity: {from: $from, to: $to}}
@@ -833,8 +778,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "orgunit": orgunit,
             "person": person,
@@ -856,8 +800,7 @@ class GraphQLClient(AsyncBaseClient):
         person: UUID | None | UnsetType = UNSET,
         user_key: str | None | UnsetType = UNSET,
     ) -> TestingUpdateManagerManagerUpdate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_UpdateManager($uuid: UUID!, $from: DateTime!, $to: DateTime, $person: UUID, $user_key: String) {
               manager_update(
                 input: {uuid: $uuid, validity: {from: $from, to: $to}, person: $person, user_key: $user_key}
@@ -865,8 +808,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "uuid": uuid,
             "from": from_,
@@ -881,15 +823,13 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__terminate_manager(
         self, uuid: UUID, to: datetime
     ) -> TestingTerminateManagerManagerTerminate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_TerminateManager($uuid: UUID!, $to: DateTime!) {
               manager_terminate(input: {uuid: $uuid, to: $to}) {
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid, "to": to}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -898,15 +838,13 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__create_it_system(
         self, name: str, from_: datetime
     ) -> TestingCreateItSystemItsystemCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateItSystem($name: String!, $from: DateTime!) {
               itsystem_create(input: {user_key: $name, name: $name, validity: {from: $from}}) {
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"name": name, "from": from_}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -920,8 +858,7 @@ class GraphQLClient(AsyncBaseClient):
         from_: datetime,
         engagements: list[UUID] | None | UnsetType = UNSET,
     ) -> TestingCreateItUserItuserCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateItUser($itsystem: UUID!, $person: UUID!, $name: String!, $from: DateTime!, $engagements: [UUID!]) {
               ituser_create(
                 input: {user_key: $name, itsystem: $itsystem, person: $person, engagements: $engagements, validity: {from: $from}}
@@ -929,8 +866,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "itsystem": itsystem,
             "person": person,
@@ -945,8 +881,7 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__create_org_unit_it_user(
         self, itsystem: UUID, org_unit: UUID, name: str, from_: datetime
     ) -> TestingCreateOrgUnitItUserItuserCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateOrgUnitItUser($itsystem: UUID!, $org_unit: UUID!, $name: String!, $from: DateTime!) {
               ituser_create(
                 input: {user_key: $name, itsystem: $itsystem, org_unit: $org_unit, validity: {from: $from}}
@@ -954,8 +889,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "itsystem": itsystem,
             "org_unit": org_unit,
@@ -969,8 +903,7 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__create_rolebinding(
         self, ituser: UUID, role: UUID, from_: datetime
     ) -> TestingCreateRolebindingRolebindingCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateRolebinding($ituser: UUID!, $role: UUID!, $from: DateTime!) {
               rolebinding_create(
                 input: {ituser: $ituser, role: $role, validity: {from: $from}}
@@ -978,8 +911,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"ituser": ituser, "role": role, "from": from_}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -988,15 +920,13 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__terminate_it_user(
         self, uuid: UUID, to: datetime
     ) -> TestingTerminateItUserItuserTerminate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_TerminateItUser($uuid: UUID!, $to: DateTime!) {
               ituser_terminate(input: {uuid: $uuid, to: $to}) {
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {"uuid": uuid, "to": to}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
@@ -1009,8 +939,7 @@ class GraphQLClient(AsyncBaseClient):
         from_: datetime,
         to: datetime | None | UnsetType = UNSET,
     ) -> TestingUpdateItUserItuserUpdate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_UpdateItUser($uuid: UUID!, $user_key: String!, $from: DateTime!, $to: DateTime) {
               ituser_update(
                 input: {uuid: $uuid, user_key: $user_key, validity: {from: $from, to: $to}}
@@ -1018,8 +947,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "uuid": uuid,
             "user_key": user_key,
@@ -1033,8 +961,7 @@ class GraphQLClient(AsyncBaseClient):
     async def _testing__create_class(
         self, name: str, facet_uuid: UUID, from_: datetime
     ) -> TestingCreateClassClassCreate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateClass($name: String!, $facet_uuid: UUID!, $from: DateTime!) {
               class_create(
                 input: {name: $name, user_key: $name, facet_uuid: $facet_uuid, validity: {from: $from}}
@@ -1042,8 +969,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "name": name,
             "facet_uuid": facet_uuid,
@@ -1060,8 +986,7 @@ class GraphQLClient(AsyncBaseClient):
         from_: datetime,
         to: datetime | None | UnsetType = UNSET,
     ) -> TestingCreateRelatedUnitsRelatedUnitsUpdate:
-        query = gql(
-            """
+        query = gql("""
             mutation _Testing_CreateRelatedUnits($origin: UUID!, $destination: [UUID!]!, $from: DateTime!, $to: DateTime) {
               related_units_update(
                 input: {origin: $origin, destination: $destination, validity: {from: $from, to: $to}}
@@ -1069,8 +994,7 @@ class GraphQLClient(AsyncBaseClient):
                 uuid
               }
             }
-            """
-        )
+            """)
         variables: dict[str, object] = {
             "origin": origin,
             "destination": destination,

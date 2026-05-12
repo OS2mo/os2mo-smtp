@@ -142,23 +142,20 @@ async def get_related_units_data(mo: GraphQLClient, related_units_uuid: UUID):
 
 
 async def get_ituser_uuid_by_rolebinding(mo: GraphQLClient, uuid: UUID) -> UUID | None:
-    try:
-        gql_response = await mo.rolebinding(uuid)
-        current = one(gql_response.objects).current
-        if current is None:  # pragma: no cover
-            # Reached when a rolebinding exists but has no current state
-            # (terminated rolebinding). Hard to reproduce in tests —
-            # there is no rolebinding_terminate mutation in the GraphQL
-            # schema that we can invoke from the test helpers.
-            return None
-        ituser_uuid = one(current.ituser).uuid
-        return ituser_uuid
-    except Exception:
-        logger.warning(
-            "Failed to fetch ituser from rolebinding UUID. "
-            "This is usually caused by rolebinding events being fired, when it should've only been an ituser event"
-        )
+    """Resolve a rolebinding UUID to its owning ituser via temporal validities.
+
+    Uses validities (not current) so that a deleted/terminated rolebinding
+    still resolves: when a rolebinding is removed, its current state goes
+    to None, but the historical validities retain the ituser reference and
+    let us route the event to the right ituser email."""
+    gql_response = await mo.rolebinding(uuid)
+    if not gql_response.objects:
         return None
+    validities = one(gql_response.objects).validities
+    if not validities:
+        return None
+    latest = max(validities, key=lambda v: v.validity.from_)
+    return one(latest.ituser).uuid
 
 
 async def get_ituser_validities(

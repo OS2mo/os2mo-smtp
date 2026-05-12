@@ -369,8 +369,9 @@ from .rolebinding import (
     Rolebinding,
     RolebindingRolebindings,
     RolebindingRolebindingsObjects,
-    RolebindingRolebindingsObjectsCurrent,
-    RolebindingRolebindingsObjectsCurrentItuser,
+    RolebindingRolebindingsObjectsValidities,
+    RolebindingRolebindingsObjectsValiditiesItuser,
+    RolebindingRolebindingsObjectsValiditiesValidity,
 )
 
 __all__ = [
@@ -582,8 +583,9 @@ __all__ = [
     "Rolebinding",
     "RolebindingRolebindings",
     "RolebindingRolebindingsObjects",
-    "RolebindingRolebindingsObjectsCurrent",
-    "RolebindingRolebindingsObjectsCurrentItuser",
+    "RolebindingRolebindingsObjectsValidities",
+    "RolebindingRolebindingsObjectsValiditiesItuser",
+    "RolebindingRolebindingsObjectsValiditiesValidity",
     "TestingCreateAddress",
     "TestingCreateAddressAddressCreate",
     "TestingCreateClass",

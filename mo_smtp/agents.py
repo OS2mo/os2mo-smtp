@@ -391,9 +391,7 @@ async def alert_on_rolebinding(
 ) -> None:
     ituser_uuid = await get_ituser_uuid_by_rolebinding(mo, uuid=uuid)
     if not ituser_uuid:
-        logger.info(
-            "IT-user is possibly terminated or doesn't exist. An email will not be sent"
-        )
+        logger.info("Rolebinding doesn't exist. An email will not be sent")
         return None
     return await generate_ituser_email(context, ituser_uuid, mo, session)
 

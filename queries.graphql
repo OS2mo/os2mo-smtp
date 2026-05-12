@@ -168,11 +168,15 @@ query relatedUnitRegistrations($uuid: UUID!) {
 }
 
 query rolebinding($uuid: UUID!) {
-  rolebindings(filter: {uuids: [$uuid]}) {
+  rolebindings(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
     objects {
-      current {
+      validities {
         ituser {
           uuid
+        }
+        validity {
+          from
+          to
         }
       }
     }

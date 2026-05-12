@@ -1,5 +1,7 @@
-from typing import Optional
+from datetime import datetime
 from uuid import UUID
+
+from pydantic import Field
 
 from .base_model import BaseModel
 
@@ -13,19 +15,26 @@ class RolebindingRolebindings(BaseModel):
 
 
 class RolebindingRolebindingsObjects(BaseModel):
-    current: Optional["RolebindingRolebindingsObjectsCurrent"]
+    validities: list["RolebindingRolebindingsObjectsValidities"]
 
 
-class RolebindingRolebindingsObjectsCurrent(BaseModel):
-    ituser: list["RolebindingRolebindingsObjectsCurrentItuser"]
+class RolebindingRolebindingsObjectsValidities(BaseModel):
+    ituser: list["RolebindingRolebindingsObjectsValiditiesItuser"]
+    validity: "RolebindingRolebindingsObjectsValiditiesValidity"
 
 
-class RolebindingRolebindingsObjectsCurrentItuser(BaseModel):
+class RolebindingRolebindingsObjectsValiditiesItuser(BaseModel):
     uuid: UUID
+
+
+class RolebindingRolebindingsObjectsValiditiesValidity(BaseModel):
+    from_: datetime = Field(alias="from")
+    to: datetime | None
 
 
 Rolebinding.update_forward_refs()
 RolebindingRolebindings.update_forward_refs()
 RolebindingRolebindingsObjects.update_forward_refs()
-RolebindingRolebindingsObjectsCurrent.update_forward_refs()
-RolebindingRolebindingsObjectsCurrentItuser.update_forward_refs()
+RolebindingRolebindingsObjectsValidities.update_forward_refs()
+RolebindingRolebindingsObjectsValiditiesItuser.update_forward_refs()
+RolebindingRolebindingsObjectsValiditiesValidity.update_forward_refs()
