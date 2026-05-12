@@ -424,8 +424,26 @@ mutation _Testing_CreateItUser($itsystem: UUID!, $person: UUID!, $name: String!,
   }
 }
 
+mutation _Testing_CreateOrgUnitItUser($itsystem: UUID!, $org_unit: UUID!, $name: String!, $from: DateTime!) {
+  ituser_create(input: {user_key: $name, itsystem: $itsystem, org_unit: $org_unit, validity: {from: $from}}) {
+    uuid
+  }
+}
+
 mutation _Testing_CreateRolebinding($ituser: UUID!, $role: UUID!, $from: DateTime!) {
   rolebinding_create(input: {ituser: $ituser, role: $role, validity: {from: $from}}) {
+    uuid
+  }
+}
+
+mutation _Testing_TerminateItUser($uuid: UUID!, $to: DateTime!) {
+  ituser_terminate(input: {uuid: $uuid, to: $to}) {
+    uuid
+  }
+}
+
+mutation _Testing_UpdateItUser($uuid: UUID!, $user_key: String!, $from: DateTime!, $to: DateTime) {
+  ituser_update(input: {uuid: $uuid, user_key: $user_key, validity: {from: $from, to: $to}}) {
     uuid
   }
 }

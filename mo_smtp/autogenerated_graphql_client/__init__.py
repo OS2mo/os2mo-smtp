@@ -31,6 +31,10 @@ from ._testing__create_org_unit_address import (
     TestingCreateOrgUnitAddress,
     TestingCreateOrgUnitAddressAddressCreate,
 )
+from ._testing__create_org_unit_it_user import (
+    TestingCreateOrgUnitItUser,
+    TestingCreateOrgUnitItUserItuserCreate,
+)
 from ._testing__create_org_unit_root import (
     TestingCreateOrgUnitRoot,
     TestingCreateOrgUnitRootOrgUnitCreate,
@@ -108,9 +112,17 @@ from ._testing__get_role_facet import (
     TestingGetRoleFacetFacets,
     TestingGetRoleFacetFacetsObjects,
 )
+from ._testing__terminate_it_user import (
+    TestingTerminateItUser,
+    TestingTerminateItUserItuserTerminate,
+)
 from ._testing__terminate_manager import (
     TestingTerminateManager,
     TestingTerminateManagerManagerTerminate,
+)
+from ._testing__update_it_user import (
+    TestingUpdateItUser,
+    TestingUpdateItUserItuserUpdate,
 )
 from ._testing__update_manager import (
     TestingUpdateManager,
@@ -589,6 +601,8 @@ __all__ = [
     "TestingCreateOrgUnit",
     "TestingCreateOrgUnitAddress",
     "TestingCreateOrgUnitAddressAddressCreate",
+    "TestingCreateOrgUnitItUser",
+    "TestingCreateOrgUnitItUserItuserCreate",
     "TestingCreateOrgUnitOrgUnitCreate",
     "TestingCreateOrgUnitRoot",
     "TestingCreateOrgUnitRootOrgUnitCreate",
@@ -639,8 +653,12 @@ __all__ = [
     "TestingGetRoleFacet",
     "TestingGetRoleFacetFacets",
     "TestingGetRoleFacetFacetsObjects",
+    "TestingTerminateItUser",
+    "TestingTerminateItUserItuserTerminate",
     "TestingTerminateManager",
     "TestingTerminateManagerManagerTerminate",
+    "TestingUpdateItUser",
+    "TestingUpdateItUserItuserUpdate",
     "TestingUpdateManager",
     "TestingUpdateManagerManagerUpdate",
     "UuidsBoundClassFilter",

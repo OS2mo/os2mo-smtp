@@ -34,6 +34,10 @@ from ._testing__create_org_unit_address import (
     TestingCreateOrgUnitAddress,
     TestingCreateOrgUnitAddressAddressCreate,
 )
+from ._testing__create_org_unit_it_user import (
+    TestingCreateOrgUnitItUser,
+    TestingCreateOrgUnitItUserItuserCreate,
+)
 from ._testing__create_org_unit_root import (
     TestingCreateOrgUnitRoot,
     TestingCreateOrgUnitRootOrgUnitCreate,
@@ -87,9 +91,17 @@ from ._testing__get_related_units_for_org_unit import (
     TestingGetRelatedUnitsForOrgUnitRelatedUnits,
 )
 from ._testing__get_role_facet import TestingGetRoleFacet, TestingGetRoleFacetFacets
+from ._testing__terminate_it_user import (
+    TestingTerminateItUser,
+    TestingTerminateItUserItuserTerminate,
+)
 from ._testing__terminate_manager import (
     TestingTerminateManager,
     TestingTerminateManagerManagerTerminate,
+)
+from ._testing__update_it_user import (
+    TestingUpdateItUser,
+    TestingUpdateItUserItuserUpdate,
 )
 from ._testing__update_manager import (
     TestingUpdateManager,
@@ -930,6 +942,30 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return TestingCreateItUser.parse_obj(data).ituser_create
 
+    async def _testing__create_org_unit_it_user(
+        self, itsystem: UUID, org_unit: UUID, name: str, from_: datetime
+    ) -> TestingCreateOrgUnitItUserItuserCreate:
+        query = gql(
+            """
+            mutation _Testing_CreateOrgUnitItUser($itsystem: UUID!, $org_unit: UUID!, $name: String!, $from: DateTime!) {
+              ituser_create(
+                input: {user_key: $name, itsystem: $itsystem, org_unit: $org_unit, validity: {from: $from}}
+              ) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "itsystem": itsystem,
+            "org_unit": org_unit,
+            "name": name,
+            "from": from_,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingCreateOrgUnitItUser.parse_obj(data).ituser_create
+
     async def _testing__create_rolebinding(
         self, ituser: UUID, role: UUID, from_: datetime
     ) -> TestingCreateRolebindingRolebindingCreate:
@@ -948,6 +984,51 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingCreateRolebinding.parse_obj(data).rolebinding_create
+
+    async def _testing__terminate_it_user(
+        self, uuid: UUID, to: datetime
+    ) -> TestingTerminateItUserItuserTerminate:
+        query = gql(
+            """
+            mutation _Testing_TerminateItUser($uuid: UUID!, $to: DateTime!) {
+              ituser_terminate(input: {uuid: $uuid, to: $to}) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"uuid": uuid, "to": to}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingTerminateItUser.parse_obj(data).ituser_terminate
+
+    async def _testing__update_it_user(
+        self,
+        uuid: UUID,
+        user_key: str,
+        from_: datetime,
+        to: datetime | None | UnsetType = UNSET,
+    ) -> TestingUpdateItUserItuserUpdate:
+        query = gql(
+            """
+            mutation _Testing_UpdateItUser($uuid: UUID!, $user_key: String!, $from: DateTime!, $to: DateTime) {
+              ituser_update(
+                input: {uuid: $uuid, user_key: $user_key, validity: {from: $from, to: $to}}
+              ) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuid": uuid,
+            "user_key": user_key,
+            "from": from_,
+            "to": to,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingUpdateItUser.parse_obj(data).ituser_update
 
     async def _testing__create_class(
         self, name: str, facet_uuid: UUID, from_: datetime
