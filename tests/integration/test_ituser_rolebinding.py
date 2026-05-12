@@ -177,6 +177,29 @@ async def test_rolebinding_not_found(
 
 
 @pytest.mark.integration_test
+async def test_terminated_rolebinding_routes_to_ituser(
+    context,
+    session: AsyncSession,
+    graphql_client: GraphQLClient,
+    email_client: MagicMock,
+):
+    """A terminated rolebinding has no current state, but its validities
+    still carry the ituser reference. The handler must resolve via
+    validities so an event for the deleted rolebinding still produces an
+    alert for the (still-alive) ituser."""
+    ituser_uuid, rolebinding_uuid = await _setup_ituser(graphql_client)
+    await graphql_client._testing__terminate_rolebinding(
+        uuid=rolebinding_uuid, to=datetime(2015, 6, 1)
+    )
+
+    await alert_on_rolebinding(context, rolebinding_uuid, None, graphql_client, session)
+
+    email_client.send_email.assert_called_once()
+    body = email_client.send_email.call_args.kwargs["body"]
+    assert "ADUSER-123" in body
+
+
+@pytest.mark.integration_test
 async def test_ituser_termination_sends_email(
     context,
     session: AsyncSession,
