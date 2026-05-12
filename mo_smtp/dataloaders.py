@@ -152,7 +152,11 @@ async def get_ituser_uuid_by_rolebinding(mo: GraphQLClient, uuid: UUID) -> UUID 
     if not gql_response.objects:
         return None
     validities = one(gql_response.objects).validities
-    if not validities:
+    if not validities:  # pragma: no cover
+        # Defensive: an existing rolebinding object always has at least one
+        # validity period in MO's bitemporal model, so this branch is
+        # unreachable via test mutations. Guarding lets us avoid a ValueError
+        # from max() if MO ever returns a malformed response.
         return None
     latest = max(validities, key=lambda v: v.validity.from_)
     return one(latest.ituser).uuid
