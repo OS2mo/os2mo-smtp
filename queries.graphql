@@ -440,6 +440,12 @@ mutation _Testing_CreateRolebinding($ituser: UUID!, $role: UUID!, $from: DateTim
   }
 }
 
+mutation _Testing_TerminateRolebinding($uuid: UUID!, $to: DateTime!) {
+  rolebinding_terminate(input: {uuid: $uuid, to: $to}) {
+    uuid
+  }
+}
+
 mutation _Testing_TerminateItUser($uuid: UUID!, $to: DateTime!) {
   ituser_terminate(input: {uuid: $uuid, to: $to}) {
     uuid

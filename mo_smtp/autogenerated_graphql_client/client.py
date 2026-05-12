@@ -99,6 +99,10 @@ from ._testing__terminate_manager import (
     TestingTerminateManager,
     TestingTerminateManagerManagerTerminate,
 )
+from ._testing__terminate_rolebinding import (
+    TestingTerminateRolebinding,
+    TestingTerminateRolebindingRolebindingTerminate,
+)
 from ._testing__update_it_user import (
     TestingUpdateItUser,
     TestingUpdateItUserItuserUpdate,
@@ -916,6 +920,21 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingCreateRolebinding.parse_obj(data).rolebinding_create
+
+    async def _testing__terminate_rolebinding(
+        self, uuid: UUID, to: datetime
+    ) -> TestingTerminateRolebindingRolebindingTerminate:
+        query = gql("""
+            mutation _Testing_TerminateRolebinding($uuid: UUID!, $to: DateTime!) {
+              rolebinding_terminate(input: {uuid: $uuid, to: $to}) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"uuid": uuid, "to": to}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingTerminateRolebinding.parse_obj(data).rolebinding_terminate
 
     async def _testing__terminate_it_user(
         self, uuid: UUID, to: datetime

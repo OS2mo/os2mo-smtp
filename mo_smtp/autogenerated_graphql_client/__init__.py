@@ -120,6 +120,10 @@ from ._testing__terminate_manager import (
     TestingTerminateManager,
     TestingTerminateManagerManagerTerminate,
 )
+from ._testing__terminate_rolebinding import (
+    TestingTerminateRolebinding,
+    TestingTerminateRolebindingRolebindingTerminate,
+)
 from ._testing__update_it_user import (
     TestingUpdateItUser,
     TestingUpdateItUserItuserUpdate,
@@ -659,6 +663,8 @@ __all__ = [
     "TestingTerminateItUserItuserTerminate",
     "TestingTerminateManager",
     "TestingTerminateManagerManagerTerminate",
+    "TestingTerminateRolebinding",
+    "TestingTerminateRolebindingRolebindingTerminate",
     "TestingUpdateItUser",
     "TestingUpdateItUserItuserUpdate",
     "TestingUpdateManager",
