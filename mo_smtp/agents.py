@@ -4,7 +4,6 @@ Python file with agents that send emails
 
 import datetime
 import hashlib
-import json
 import os
 from uuid import UUID
 from typing import Any
@@ -41,7 +40,7 @@ from .dataloaders import get_org_unit_relations
 from .dataloaders import get_institution_address
 from .dataloaders import get_related_units_data
 from .dataloaders import get_ituser_uuid_by_rolebinding
-from .dataloaders import get_ituser
+from .dataloaders import get_ituser_validities
 
 logger = structlog.get_logger()
 
@@ -420,40 +419,62 @@ async def generate_ituser_email(
     email_client = user_context["email_client"]
     email_settings = user_context["email_settings"]
 
-    ituser = await get_ituser(mo, uuid=ituser_uuid)
-    if not ituser:
-        logger.info(
-            "IT-user is possibly terminated or doesn't exist. An email will not be sent"
-        )
+    validities = await get_ituser_validities(mo, uuid=ituser_uuid)
+    if not validities:
+        logger.info("IT-user doesn't exist. An email will not be sent")
         return
 
-    if ituser.user_key == "nanoq-brugernavn":
+    # Terminated iff none of the validities is open-ended. A bounded update
+    # (e.g. user_key changed for a week) always leaves a trailing open-ended
+    # validity for the resumed state, so it won't be misread as terminated.
+    terminated = all(v.validity.to is not None for v in validities)
+    chosen = max(validities, key=lambda v: v.validity.from_)
+
+    if not chosen.person:
+        # org_unit-scoped IT users (no person attached) are out of scope for
+        # this notification: there's no individual to inform anyone about.
+        logger.info("IT-user has no person. An email will not be sent")
+        return
+
+    rolebindings = chosen.rolebindings
+    itsystem = chosen.itsystem.name
+    person = one(chosen.person).name
+    user_key = chosen.user_key
+    if terminated:
+        # `terminated` => every validity has to != None, so chosen's does too.
+        assert chosen.validity.to is not None
+        to_date = chosen.validity.to.date()
+    else:
+        to_date = None
+
+    if user_key == "nanoq-brugernavn":
         logger.info(
             "IT-user has default user_key 'nanoq-brugernavn'. An email will not be sent"
         )
         return
 
-    rolebindings = ituser.rolebindings
-    itsystem = ituser.itsystem.name
-    person = one(ituser.person).name if ituser.person else None
-    roles = [one(rb.role) for rb in rolebindings]
+    roles = [one(rb.role).name for rb in rolebindings]
+    roles_line = f"\nRoller: {', '.join(roles)}" if roles else ""
 
-    template = load_template("alert_on_rolebinding.html")
+    if terminated:
+        alert_type = "ituser_termination"
+        subject = "En IT-bruger er blevet termineret i MO"
+        body = (
+            f"Brugeren {person} ({user_key}) "
+            f"er blevet termineret i {itsystem} pr. {to_date}." + roles_line
+        )
+    else:
+        alert_type = "ituser"
+        subject = "En IT-bruger er blevet oprettet i MO"
+        body = (
+            f"Brugeren {person} ({user_key}) skal oprettes i {itsystem}." + roles_line
+        )
 
-    template_context = {
-        "person": person,
-        "ituser": ituser.user_key,
-        "itsystem": itsystem,
-        "roles": roles,
-    }
-
-    content_hash = hashlib.sha256(
-        json.dumps(template_context, sort_keys=True, default=str).encode()
-    ).hexdigest()
+    content_hash = hashlib.sha256(body.encode()).hexdigest()
 
     existing = await session.scalar(
         select(SentAlert).where(
-            SentAlert.alert_type == "ituser",
+            SentAlert.alert_type == alert_type,
             SentAlert.object_uuid == ituser_uuid,
         )
     )
@@ -461,13 +482,11 @@ async def generate_ituser_email(
         logger.info("Email is identical to the previous. An email will not be sent")
         return
 
-    message = template.render(context=template_context)
-
     email_client.send_email(
         receiver=set(email_settings.receivers),
-        subject="En IT-bruger er blevet oprettet i MO",
-        body=message,
-        texttype="html",
+        subject=subject,
+        body=body,
+        texttype="plain",
     )
 
     if existing:
@@ -475,7 +494,7 @@ async def generate_ituser_email(
     else:
         session.add(
             SentAlert(
-                alert_type="ituser",
+                alert_type=alert_type,
                 object_uuid=ituser_uuid,
                 content_hash=content_hash,
             )

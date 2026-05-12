@@ -180,10 +180,10 @@ query rolebinding($uuid: UUID!) {
 }
 
 
-query ituser($uuid: UUID!) {
-  itusers(filter: { uuids: [$uuid] }) {
+query ituserValidities($uuid: UUID!) {
+  itusers(filter: { uuids: [$uuid], from_date: null, to_date: null }) {
     objects {
-      current {
+      validities {
         user_key
         rolebindings {
           role {
@@ -198,6 +198,10 @@ query ituser($uuid: UUID!) {
         itsystem {
           name
           uuid
+        }
+        validity {
+          from
+          to
         }
       }
     }

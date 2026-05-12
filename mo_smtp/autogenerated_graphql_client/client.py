@@ -101,7 +101,7 @@ from .base_model import UNSET, UnsetType
 from .employee_data import EmployeeData, EmployeeDataEmployees
 from .employee_name import EmployeeName, EmployeeNameEmployees
 from .institution_address import InstitutionAddress, InstitutionAddressOrgUnits
-from .ituser import Ituser, ItuserItusers
+from .ituser_validities import ItuserValidities, ItuserValiditiesItusers
 from .manager_data import ManagerData, ManagerDataManagers
 from .org_unit_address import OrgUnitAddress, OrgUnitAddressOrgUnits
 from .org_unit_ancestors import OrgUnitAncestors, OrgUnitAncestorsOrgUnits
@@ -396,13 +396,13 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return Rolebinding.parse_obj(data).rolebindings
 
-    async def ituser(self, uuid: UUID) -> ItuserItusers:
+    async def ituser_validities(self, uuid: UUID) -> ItuserValiditiesItusers:
         query = gql(
             """
-            query ituser($uuid: UUID!) {
-              itusers(filter: {uuids: [$uuid]}) {
+            query ituserValidities($uuid: UUID!) {
+              itusers(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
-                  current {
+                  validities {
                     user_key
                     rolebindings {
                       role {
@@ -418,6 +418,10 @@ class GraphQLClient(AsyncBaseClient):
                       name
                       uuid
                     }
+                    validity {
+                      from
+                      to
+                    }
                   }
                 }
               }
@@ -427,7 +431,7 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return Ituser.parse_obj(data).itusers
+        return ItuserValidities.parse_obj(data).itusers
 
     async def _testing__get_org_unit_type(self) -> TestingGetOrgUnitTypeClasses:
         query = gql(
