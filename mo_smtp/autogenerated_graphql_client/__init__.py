@@ -1,3 +1,9 @@
+from ._testing__create_class import TestingCreateClass, TestingCreateClassClassCreate
+from ._testing__create_facet import TestingCreateFacet, TestingCreateFacetFacetCreate
+from ._testing__create_org_root import (
+    TestingCreateOrgRoot,
+    TestingCreateOrgRootOrgCreate,
+)
 from .address_data import (
     AddressData,
     AddressDataAddresses,
@@ -452,6 +458,12 @@ __all__ = [
     "RolebindingRolebindingsObjects",
     "RolebindingRolebindingsObjectsCurrent",
     "RolebindingRolebindingsObjectsCurrentItuser",
+    "TestingCreateClass",
+    "TestingCreateClassClassCreate",
+    "TestingCreateFacet",
+    "TestingCreateFacetFacetCreate",
+    "TestingCreateOrgRoot",
+    "TestingCreateOrgRootOrgCreate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",

@@ -16,6 +16,8 @@ from .mail import EmailClient
 logger = structlog.get_logger()
 fastapi_router = APIRouter()
 
+GRAPHQL_VERSION = 28
+
 
 def register_agents(
     amqp_router: MORouter,
@@ -46,7 +48,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi = FastRAMQPI(
         application_name=settings.application_name,
         settings=settings.fastramqpi,
-        graphql_version=28,
+        graphql_version=GRAPHQL_VERSION,
         graphql_client_cls=GraphQLClient,  # type: ignore
     )
     fastramqpi.add_context(settings=settings)
@@ -85,6 +87,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     return fastramqpi
 
 
-def create_app(**kwargs: Any) -> FastAPI:
-    fastramqpi = create_fastramqpi(**kwargs)
+def create_app(fastramqpi: FastRAMQPI | None = None, **kwargs: Any) -> FastAPI:
+    if fastramqpi is None:
+        fastramqpi = create_fastramqpi(**kwargs)
     return fastramqpi.get_app()
