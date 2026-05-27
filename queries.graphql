@@ -201,3 +201,26 @@ query ituser($uuid: UUID!) {
     }
   }
 }
+
+
+# =============================================================================
+# Testing mutations — used by integration tests to seed data in MO
+# =============================================================================
+
+mutation _Testing_CreateOrgRoot($input: OrganisationCreate!) {
+  org_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateFacet($input: FacetCreateInput!) {
+  facet_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateClass($input: ClassCreateInput!) {
+  class_create(input: $input) {
+    uuid
+  }
+}
