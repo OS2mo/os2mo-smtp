@@ -39,6 +39,14 @@ class Settings(BaseSettings):
     root_loen_org: UUID | None = None
     alert_manager_removal_use_org_unit_emails: bool = False
 
+    # Listeners
+    enable_address_events: bool = False
+    enable_manager_events: bool = False
+    enable_rolebinding_events: bool = False
+    enable_ituser_events: bool = False
+    enable_org_unit_events: bool = False
+    enable_related_unit_events: bool = False
+
 
 class EmailSettings(BaseSettings):
     class Config:
