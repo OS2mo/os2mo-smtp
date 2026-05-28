@@ -25,7 +25,12 @@ services:
       SMTP_SECURITY: "none"
       DRY_RUN: True
 
-      ACTIVE_AGENTS: '["inform_manager_on_employee_address_creation", "alert_on_manager_removal","alert_on_rolebinding","alert_on_ituser","handle_org_unit", "handle_related_units"]'
+      ENABLE_ADDRESS_EVENTS: "True"
+      ENABLE_MANAGER_EVENTS: "True"
+      ENABLE_ROLEBINDING_EVENTS: "True"
+      ENABLE_ITUSER_EVENTS: "True"
+      ENABLE_ORG_UNIT_EVENTS: "True"
+      ENABLE_RELATED_UNIT_EVENTS: "True"
       ROOT_LOEN_ORG: "fb2d158f-114e-5f67-8365-2c520cf10b58"
       ALERT_MANAGER_REMOVAL_USE_ORG_UNIT_EMAILS: "true"
 

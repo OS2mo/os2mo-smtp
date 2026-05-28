@@ -33,9 +33,6 @@ class Settings(BaseSettings):
 
     application_name: str = "os2mo_email_listener"
 
-    active_agents: list[str] = Field(
-        [], description="Agents which are actively listening and sending mails"
-    )
     root_loen_org: UUID | None = None
     alert_manager_removal_use_org_unit_emails: bool = False
 
