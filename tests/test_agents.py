@@ -34,11 +34,102 @@ import pytest
 from fastramqpi.context import Context
 from structlog.testing import capture_logs
 
-from mo_smtp.agents import alert_on_manager_removal, handle_org_unit
-from mo_smtp.agents import handle_related_units
-from mo_smtp.agents import inform_manager_on_employee_address_creation
-from mo_smtp.agents import alert_on_rolebinding
-from mo_smtp.agents import alert_on_ituser
+from fastramqpi.events import Event
+
+from mo_smtp.agents import alert_on_ituser as _alert_on_ituser
+from mo_smtp.agents import alert_on_manager_removal as _alert_on_manager_removal
+from mo_smtp.agents import alert_on_rolebinding as _alert_on_rolebinding
+from mo_smtp.agents import handle_org_unit as _handle_org_unit
+from mo_smtp.agents import handle_related_units as _handle_related_units
+from mo_smtp.agents import (
+    inform_manager_on_employee_address_creation as _inform_manager_on_employee_address_creation,
+)
+from mo_smtp.config import Settings
+
+
+# Adapter wrappers: preserve the old `(context, uuid, _, mo)` test
+# call signature against the migrated agents, which now take
+# `(event, mo, email_client, ...)` via FastAPI DI. The unit tests in
+# this file will be replaced by integration tests in follow-up MRs;
+# these wrappers keep coverage green during the transition.
+
+
+def _event(uuid):
+    return Event(subject=uuid, priority=1)
+
+
+def _from_ctx(context, key):
+    return context["user_context"].get(key)
+
+
+def _settings():
+    """Construct Settings from env, or fall back to a mock with defaults.
+
+    Tests that exercise the settings-dependent branches set env via
+    `monkeypatch.setenv(...)`; tests that early-return don't, and would
+    fail Settings() construction. The mock keeps them green.
+    """
+    try:
+        return Settings()
+    except Exception:
+        m = MagicMock()
+        m.alert_manager_removal_use_org_unit_emails = False
+        m.root_loen_org = None
+        return m
+
+
+async def inform_manager_on_employee_address_creation(context, uuid, _, mo):
+    return await _inform_manager_on_employee_address_creation(
+        _event(uuid), mo, _from_ctx(context, "email_client")
+    )
+
+
+async def alert_on_manager_removal(context, uuid, _, mo):
+    return await _alert_on_manager_removal(
+        _event(uuid),
+        mo,
+        _from_ctx(context, "email_client"),
+        _from_ctx(context, "email_settings"),
+        _settings(),
+    )
+
+
+async def handle_org_unit(context, uuid, _, mo):
+    return await _handle_org_unit(
+        _event(uuid),
+        mo,
+        _from_ctx(context, "email_client"),
+        _settings(),
+        _from_ctx(context, "email_settings"),
+    )
+
+
+async def handle_related_units(context, uuid, _, mo):
+    return await _handle_related_units(
+        _event(uuid),
+        mo,
+        _from_ctx(context, "email_client"),
+        _settings(),
+        _from_ctx(context, "email_settings"),
+    )
+
+
+async def alert_on_rolebinding(context, uuid, _, mo):
+    return await _alert_on_rolebinding(
+        _event(uuid),
+        mo,
+        _from_ctx(context, "email_client"),
+        _from_ctx(context, "email_settings"),
+    )
+
+
+async def alert_on_ituser(context, uuid, _, mo):
+    return await _alert_on_ituser(
+        _event(uuid),
+        mo,
+        _from_ctx(context, "email_client"),
+        _from_ctx(context, "email_settings"),
+    )
 
 
 @pytest.fixture

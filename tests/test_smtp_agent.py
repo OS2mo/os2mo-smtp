@@ -9,10 +9,10 @@ from unittest.mock import patch
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from fastramqpi.ramqp.mo import MORouter
 
+from mo_smtp.config import Settings
+from mo_smtp.smtp_agent import _configure_listeners
 from mo_smtp.smtp_agent import create_app
-from mo_smtp.smtp_agent import register_agents
 
 
 @pytest.fixture(scope="module")
@@ -46,33 +46,53 @@ def test_create_app(
     assert isinstance(app, FastAPI)
 
 
-def test_register_agents():
-    agents_to_register = ["agent_1"]
-
-    amqp_router = MORouter()
-
-    @amqp_router.register("address")
-    def agent_1():
-        pass
-
-    @amqp_router.register("manager")
-    def agent_2():
-        pass
-
-    amqpsystem = MagicMock()
-    amqpsystem.router.registry = {}
-
-    assert len(amqp_router.registry) == 2
-    register_agents(amqp_router, amqpsystem, agents_to_register)
-    assert len(amqp_router.registry) == 2
-    assert len(amqpsystem.router.registry) == 1
-
-    routing_keys = list(amqpsystem.router.registry.values())
-
-    assert routing_keys[0] == {"address"}
-
-
 def test_send_test_mail(test_client: TestClient):
     params = {"receiver": "nj@magenta-aps.dk"}
     response = test_client.post("/send_test_email", params=params)
     assert response.status_code == 202
+
+
+@pytest.mark.parametrize(
+    "enabled_env,expected_paths",
+    [
+        # Opt-in default: nothing fires unless explicitly enabled.
+        ({}, set()),
+        # A subset enables exactly those listeners.
+        (
+            {"ENABLE_ADDRESS_EVENTS": "True", "ENABLE_ITUSER_EVENTS": "True"},
+            {"/address", "/ituser"},
+        ),
+        # All six flags wire through to all six listeners.
+        (
+            {
+                "ENABLE_ADDRESS_EVENTS": "True",
+                "ENABLE_MANAGER_EVENTS": "True",
+                "ENABLE_ROLEBINDING_EVENTS": "True",
+                "ENABLE_ITUSER_EVENTS": "True",
+                "ENABLE_ORG_UNIT_EVENTS": "True",
+                "ENABLE_RELATED_UNIT_EVENTS": "True",
+            },
+            {
+                "/address",
+                "/manager",
+                "/rolebinding",
+                "/ituser",
+                "/org_unit",
+                "/related_unit",
+            },
+        ),
+    ],
+)
+def test_configure_listeners(
+    load_settings_overrides: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+    enabled_env: dict[str, str],
+    expected_paths: set[str],
+) -> None:
+    """Each enable_*_events flag declares exactly one matching listener."""
+    for key, value in enabled_env.items():
+        monkeypatch.setenv(key, value)
+
+    paths = {listener.path for listener in _configure_listeners(Settings())}
+
+    assert paths == expected_paths
