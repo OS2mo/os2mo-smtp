@@ -22,7 +22,6 @@ GRAPHQL_VERSION = 28
 EVENT_NAMESPACE = "smtp"
 
 ROUTING_KEYS = (
-    "address",
     "manager",
     "rolebinding",
     "ituser",

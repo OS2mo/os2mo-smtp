@@ -59,13 +59,12 @@ def test_send_test_mail(test_client: TestClient):
         ({}, set()),
         # A subset enables exactly those listeners.
         (
-            {"ENABLE_ADDRESS_EVENTS": "True", "ENABLE_ITUSER_EVENTS": "True"},
-            {"/address", "/ituser"},
+            {"ENABLE_MANAGER_EVENTS": "True", "ENABLE_ITUSER_EVENTS": "True"},
+            {"/manager", "/ituser"},
         ),
-        # All six flags wire through to all six listeners.
+        # All flags wire through to all listeners.
         (
             {
-                "ENABLE_ADDRESS_EVENTS": "True",
                 "ENABLE_MANAGER_EVENTS": "True",
                 "ENABLE_ROLEBINDING_EVENTS": "True",
                 "ENABLE_ITUSER_EVENTS": "True",
@@ -73,7 +72,6 @@ def test_send_test_mail(test_client: TestClient):
                 "ENABLE_RELATED_UNIT_EVENTS": "True",
             },
             {
-                "/address",
                 "/manager",
                 "/rolebinding",
                 "/ituser",

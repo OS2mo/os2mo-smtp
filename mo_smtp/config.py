@@ -37,7 +37,6 @@ class Settings(BaseSettings):
     alert_manager_removal_use_org_unit_emails: bool = False
 
     # Listeners
-    enable_address_events: bool = False
     enable_manager_events: bool = False
     enable_rolebinding_events: bool = False
     enable_ituser_events: bool = False

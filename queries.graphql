@@ -16,31 +16,6 @@ query managerData($uuid: UUID!) {
   }
 }
 
-query employeeData($uuid: UUID!) {
-  employees(filter: { uuids: [$uuid] }) {
-    objects {
-      current {
-        name
-        addresses(filter: {address_type:{scope: "EMAIL"}}) {
-          value
-        }
-        engagements {
-          org_unit {
-            name
-          }
-          managers(exclude_self: true) {
-            person {
-              addresses(filter: {address_type: {scope: "EMAIL"} }) {
-                value
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
 query employeeName($uuid: UUID!) {
   employees(filter: { uuids: [$uuid] }) {
     objects {
@@ -72,20 +47,6 @@ query orgUnitData($uuid: UUID!) {
         user_key
         root {
           uuid
-        }
-      }
-    }
-  }
-}
-
-query addressData($uuid: UUID!) {
-  addresses(filter: { uuids: [$uuid] }) {
-    objects {
-      current {
-        value
-        employee_uuid
-        address_type {
-          scope
         }
       }
     }
