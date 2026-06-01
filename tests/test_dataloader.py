@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
-#
-# SPDX-License-Identifier: MPL-2.0
 import datetime
 from datetime import timezone, timedelta
 from unittest.mock import AsyncMock
