@@ -25,7 +25,6 @@ services:
       SMTP_SECURITY: "none"
       DRY_RUN: True
 
-      ENABLE_ADDRESS_EVENTS: "True"
       ENABLE_MANAGER_EVENTS: "True"
       ENABLE_ROLEBINDING_EVENTS: "True"
       ENABLE_ITUSER_EVENTS: "True"

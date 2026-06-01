@@ -31,15 +31,6 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     # One listener per enabled event type. Listed explicitly so each
     # enable_*_events setting can be found by searching the code.
     listeners = []
-    if settings.enable_address_events:
-        listeners.append(
-            Listener(
-                namespace="mo",
-                user_key="address",
-                routing_key="address",
-                path="/address",
-            )
-        )
     if settings.enable_manager_events:
         listeners.append(
             Listener(

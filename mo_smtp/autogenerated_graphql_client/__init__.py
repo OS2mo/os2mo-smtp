@@ -4,28 +4,9 @@ from ._testing__create_org_root import (
     TestingCreateOrgRoot,
     TestingCreateOrgRootOrgCreate,
 )
-from .address_data import (
-    AddressData,
-    AddressDataAddresses,
-    AddressDataAddressesObjects,
-    AddressDataAddressesObjectsCurrent,
-    AddressDataAddressesObjectsCurrentAddressType,
-)
 from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
 from .client import GraphQLClient
-from .employee_data import (
-    EmployeeData,
-    EmployeeDataEmployees,
-    EmployeeDataEmployeesObjects,
-    EmployeeDataEmployeesObjectsCurrent,
-    EmployeeDataEmployeesObjectsCurrentAddresses,
-    EmployeeDataEmployeesObjectsCurrentEngagements,
-    EmployeeDataEmployeesObjectsCurrentEngagementsManagers,
-    EmployeeDataEmployeesObjectsCurrentEngagementsManagersPerson,
-    EmployeeDataEmployeesObjectsCurrentEngagementsManagersPersonAddresses,
-    EmployeeDataEmployeesObjectsCurrentEngagementsOrgUnit,
-)
 from .employee_name import (
     EmployeeName,
     EmployeeNameEmployees,
@@ -252,11 +233,6 @@ __all__ = [
     "AccessLogFilter",
     "AccessLogModel",
     "AddressCreateInput",
-    "AddressData",
-    "AddressDataAddresses",
-    "AddressDataAddressesObjects",
-    "AddressDataAddressesObjectsCurrent",
-    "AddressDataAddressesObjectsCurrentAddressType",
     "AddressFilter",
     "AddressRegistrationFilter",
     "AddressTerminateInput",
@@ -276,16 +252,6 @@ __all__ = [
     "ClassUpdateInput",
     "DescendantParentBoundOrganisationUnitFilter",
     "EmployeeCreateInput",
-    "EmployeeData",
-    "EmployeeDataEmployees",
-    "EmployeeDataEmployeesObjects",
-    "EmployeeDataEmployeesObjectsCurrent",
-    "EmployeeDataEmployeesObjectsCurrentAddresses",
-    "EmployeeDataEmployeesObjectsCurrentEngagements",
-    "EmployeeDataEmployeesObjectsCurrentEngagementsManagers",
-    "EmployeeDataEmployeesObjectsCurrentEngagementsManagersPerson",
-    "EmployeeDataEmployeesObjectsCurrentEngagementsManagersPersonAddresses",
-    "EmployeeDataEmployeesObjectsCurrentEngagementsOrgUnit",
     "EmployeeFilter",
     "EmployeeName",
     "EmployeeNameEmployees",
