@@ -185,3 +185,45 @@ mutation _Testing_CreateClass($input: ClassCreateInput!) {
     uuid
   }
 }
+
+mutation _Testing_CreateEmployee($input: EmployeeCreateInput!) {
+  employee_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateAddress($input: AddressCreateInput!) {
+  address_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+  org_unit_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateManager($input: ManagerCreateInput!) {
+  manager_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_TerminateManager($input: ManagerTerminateInput!) {
+  manager_terminate(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateEngagement($input: EngagementCreateInput!) {
+  engagement_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+  org_unit_terminate(input: $input) {
+    uuid
+  }
+}

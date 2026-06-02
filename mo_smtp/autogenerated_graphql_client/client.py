@@ -1,14 +1,53 @@
 from uuid import UUID
 
+from ._testing__create_address import (
+    TestingCreateAddress,
+    TestingCreateAddressAddressCreate,
+)
 from ._testing__create_class import TestingCreateClass, TestingCreateClassClassCreate
+from ._testing__create_employee import (
+    TestingCreateEmployee,
+    TestingCreateEmployeeEmployeeCreate,
+)
+from ._testing__create_engagement import (
+    TestingCreateEngagement,
+    TestingCreateEngagementEngagementCreate,
+)
 from ._testing__create_facet import TestingCreateFacet, TestingCreateFacetFacetCreate
+from ._testing__create_manager import (
+    TestingCreateManager,
+    TestingCreateManagerManagerCreate,
+)
 from ._testing__create_org_root import (
     TestingCreateOrgRoot,
     TestingCreateOrgRootOrgCreate,
 )
+from ._testing__create_org_unit import (
+    TestingCreateOrgUnit,
+    TestingCreateOrgUnitOrgUnitCreate,
+)
+from ._testing__terminate_manager import (
+    TestingTerminateManager,
+    TestingTerminateManagerManagerTerminate,
+)
+from ._testing__terminate_org_unit import (
+    TestingTerminateOrgUnit,
+    TestingTerminateOrgUnitOrgUnitTerminate,
+)
 from .async_base_client import AsyncBaseClient
 from .employee_name import EmployeeName, EmployeeNameEmployees
-from .input_types import ClassCreateInput, FacetCreateInput, OrganisationCreate
+from .input_types import (
+    AddressCreateInput,
+    ClassCreateInput,
+    EmployeeCreateInput,
+    EngagementCreateInput,
+    FacetCreateInput,
+    ManagerCreateInput,
+    ManagerTerminateInput,
+    OrganisationCreate,
+    OrganisationUnitCreateInput,
+    OrganisationUnitTerminateInput,
+)
 from .institution_address import InstitutionAddress, InstitutionAddressOrgUnits
 from .ituser import Ituser, ItuserItusers
 from .manager_data import ManagerData, ManagerDataManagers
@@ -74,6 +113,7 @@ class GraphQLClient(AsyncBaseClient):
                 objects {
                   current {
                     ancestors {
+                      uuid
                       name
                     }
                     name
@@ -95,9 +135,6 @@ class GraphQLClient(AsyncBaseClient):
                   current {
                     name
                     user_key
-                    root {
-                      uuid
-                    }
                   }
                 }
               }
@@ -303,3 +340,108 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingCreateClass.parse_obj(data).class_create
+
+    async def _testing__create_employee(
+        self, input: EmployeeCreateInput
+    ) -> TestingCreateEmployeeEmployeeCreate:
+        query = gql("""
+            mutation _Testing_CreateEmployee($input: EmployeeCreateInput!) {
+              employee_create(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingCreateEmployee.parse_obj(data).employee_create
+
+    async def _testing__create_address(
+        self, input: AddressCreateInput
+    ) -> TestingCreateAddressAddressCreate:
+        query = gql("""
+            mutation _Testing_CreateAddress($input: AddressCreateInput!) {
+              address_create(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingCreateAddress.parse_obj(data).address_create
+
+    async def _testing__create_org_unit(
+        self, input: OrganisationUnitCreateInput
+    ) -> TestingCreateOrgUnitOrgUnitCreate:
+        query = gql("""
+            mutation _Testing_CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+              org_unit_create(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingCreateOrgUnit.parse_obj(data).org_unit_create
+
+    async def _testing__create_manager(
+        self, input: ManagerCreateInput
+    ) -> TestingCreateManagerManagerCreate:
+        query = gql("""
+            mutation _Testing_CreateManager($input: ManagerCreateInput!) {
+              manager_create(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingCreateManager.parse_obj(data).manager_create
+
+    async def _testing__terminate_manager(
+        self, input: ManagerTerminateInput
+    ) -> TestingTerminateManagerManagerTerminate:
+        query = gql("""
+            mutation _Testing_TerminateManager($input: ManagerTerminateInput!) {
+              manager_terminate(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingTerminateManager.parse_obj(data).manager_terminate
+
+    async def _testing__create_engagement(
+        self, input: EngagementCreateInput
+    ) -> TestingCreateEngagementEngagementCreate:
+        query = gql("""
+            mutation _Testing_CreateEngagement($input: EngagementCreateInput!) {
+              engagement_create(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingCreateEngagement.parse_obj(data).engagement_create
+
+    async def _testing__terminate_org_unit(
+        self, input: OrganisationUnitTerminateInput
+    ) -> TestingTerminateOrgUnitOrgUnitTerminate:
+        query = gql("""
+            mutation _Testing_TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+              org_unit_terminate(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingTerminateOrgUnit.parse_obj(data).org_unit_terminate
