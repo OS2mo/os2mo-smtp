@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import UUID
 
 from .base_model import BaseModel
 
@@ -21,6 +22,7 @@ class OrgUnitAncestorsOrgUnitsObjectsCurrent(BaseModel):
 
 
 class OrgUnitAncestorsOrgUnitsObjectsCurrentAncestors(BaseModel):
+    uuid: UUID
     name: str
 
 

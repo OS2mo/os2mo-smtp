@@ -31,6 +31,7 @@ query orgUnitAncestors($uuid: UUID!) {
     objects {
       current {
         ancestors {
+          uuid
           name
         }
         name
@@ -45,9 +46,6 @@ query orgUnitData($uuid: UUID!) {
       current {
         name
         user_key
-        root {
-          uuid
-        }
       }
     }
   }

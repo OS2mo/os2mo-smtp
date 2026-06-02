@@ -124,12 +124,15 @@ async def test_get_org_unit_location():
                     "current": {
                         "ancestors": [
                             {
+                                "uuid": uuid4(),
                                 "name": "And",
                             },
                             {
+                                "uuid": uuid4(),
                                 "name": "Stones",
                             },
                             {
+                                "uuid": uuid4(),
                                 "name": "Rolling",
                             },
                         ],
