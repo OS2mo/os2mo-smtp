@@ -9,10 +9,8 @@ from unittest.mock import patch
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from fastramqpi.ramqp.mo import MORouter
 
 from mo_smtp.smtp_agent import create_app
-from mo_smtp.smtp_agent import register_agents
 
 
 @pytest.fixture(scope="module")
@@ -44,32 +42,6 @@ def test_create_app(
     """Test that we can construct our FastAPI application."""
 
     assert isinstance(app, FastAPI)
-
-
-def test_register_agents():
-    agents_to_register = ["agent_1"]
-
-    amqp_router = MORouter()
-
-    @amqp_router.register("address")
-    def agent_1():
-        pass
-
-    @amqp_router.register("manager")
-    def agent_2():
-        pass
-
-    amqpsystem = MagicMock()
-    amqpsystem.router.registry = {}
-
-    assert len(amqp_router.registry) == 2
-    register_agents(amqp_router, amqpsystem, agents_to_register)
-    assert len(amqp_router.registry) == 2
-    assert len(amqpsystem.router.registry) == 1
-
-    routing_keys = list(amqpsystem.router.registry.values())
-
-    assert routing_keys[0] == {"address"}
 
 
 def test_send_test_mail(test_client: TestClient):

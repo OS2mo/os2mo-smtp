@@ -6,9 +6,7 @@ from ._testing__create_org_root import (
     TestingCreateOrgRoot,
     TestingCreateOrgRootOrgCreate,
 )
-from .address_data import AddressData, AddressDataAddresses
 from .async_base_client import AsyncBaseClient
-from .employee_data import EmployeeData, EmployeeDataEmployees
 from .employee_name import EmployeeName, EmployeeNameEmployees
 from .input_types import ClassCreateInput, FacetCreateInput, OrganisationCreate
 from .institution_address import InstitutionAddress, InstitutionAddressOrgUnits
@@ -51,38 +49,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ManagerData.parse_obj(data).managers
-
-    async def employee_data(self, uuid: UUID) -> EmployeeDataEmployees:
-        query = gql("""
-            query employeeData($uuid: UUID!) {
-              employees(filter: {uuids: [$uuid]}) {
-                objects {
-                  current {
-                    name
-                    addresses(filter: {address_type: {scope: "EMAIL"}}) {
-                      value
-                    }
-                    engagements {
-                      org_unit {
-                        name
-                      }
-                      managers(exclude_self: true) {
-                        person {
-                          addresses(filter: {address_type: {scope: "EMAIL"}}) {
-                            value
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            """)
-        variables: dict[str, object] = {"uuid": uuid}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return EmployeeData.parse_obj(data).employees
 
     async def employee_name(self, uuid: UUID) -> EmployeeNameEmployees:
         query = gql("""
@@ -141,27 +107,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitData.parse_obj(data).org_units
-
-    async def address_data(self, uuid: UUID) -> AddressDataAddresses:
-        query = gql("""
-            query addressData($uuid: UUID!) {
-              addresses(filter: {uuids: [$uuid]}) {
-                objects {
-                  current {
-                    value
-                    employee_uuid
-                    address_type {
-                      scope
-                    }
-                  }
-                }
-              }
-            }
-            """)
-        variables: dict[str, object] = {"uuid": uuid}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return AddressData.parse_obj(data).addresses
 
     async def org_unit_relations(self, uuid: UUID) -> OrgUnitRelationsOrgUnits:
         query = gql("""

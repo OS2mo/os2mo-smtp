@@ -65,7 +65,6 @@ def integration_test_environment_variables(
     monkeypatch.setenv("SMTP_HOST", "mailcatcher")
     monkeypatch.setenv("SMTP_SECURITY", "none")
     monkeypatch.setenv("DRY_RUN", "True")
-    monkeypatch.setenv("ACTIVE_AGENTS", "[]")
     monkeypatch.setenv("ROOT_LOEN_ORG", str(root_loen_org))
 
 
