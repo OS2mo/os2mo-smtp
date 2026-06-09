@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+
 # Sends an email
 from email.mime.text import MIMEText
 from smtplib import SMTP, SMTP_SSL

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+
 """HTTP endpoints that handle GraphQL events from MO."""
 
 import datetime

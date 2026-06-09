@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+
 import os
 from collections.abc import AsyncIterator
 from collections.abc import Iterator

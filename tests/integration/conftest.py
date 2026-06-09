@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+
 from datetime import datetime
 from datetime import timezone
 from uuid import UUID
