@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
-#
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+
 from collections.abc import Iterator
 from typing import Any
 from unittest.mock import MagicMock

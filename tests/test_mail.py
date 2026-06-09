@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+
 from email.mime.text import MIMEText
 from smtplib import SMTPNotSupportedError
 from unittest.mock import MagicMock
