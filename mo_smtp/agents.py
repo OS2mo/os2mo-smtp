@@ -27,6 +27,7 @@ from .dataloaders import get_org_unit_address
 from .dataloaders import get_org_unit_data
 from .dataloaders import get_org_unit_location
 from .dataloaders import get_org_unit_relations
+from .dataloaders import get_org_unit_root
 from .dataloaders import get_related_units_data
 from .mail import EmailClient
 
@@ -124,7 +125,7 @@ async def alert_on_manager_removal(
     message = template.render(context=template_context)
 
     if settings.alert_manager_removal_use_org_unit_emails:
-        root = one(org_unit.root).uuid
+        root = await get_org_unit_root(mo, org_unit_uuid)
         # if org_unit_uuid == root, we just use the address from the root
         if org_unit_uuid == root:
             receivers = await get_org_unit_address(mo, org_unit_uuid)

@@ -1,8 +1,36 @@
+from ._testing__create_address import (
+    TestingCreateAddress,
+    TestingCreateAddressAddressCreate,
+)
 from ._testing__create_class import TestingCreateClass, TestingCreateClassClassCreate
+from ._testing__create_employee import (
+    TestingCreateEmployee,
+    TestingCreateEmployeeEmployeeCreate,
+)
+from ._testing__create_engagement import (
+    TestingCreateEngagement,
+    TestingCreateEngagementEngagementCreate,
+)
 from ._testing__create_facet import TestingCreateFacet, TestingCreateFacetFacetCreate
+from ._testing__create_manager import (
+    TestingCreateManager,
+    TestingCreateManagerManagerCreate,
+)
 from ._testing__create_org_root import (
     TestingCreateOrgRoot,
     TestingCreateOrgRootOrgCreate,
+)
+from ._testing__create_org_unit import (
+    TestingCreateOrgUnit,
+    TestingCreateOrgUnitOrgUnitCreate,
+)
+from ._testing__terminate_manager import (
+    TestingTerminateManager,
+    TestingTerminateManagerManagerTerminate,
+)
+from ._testing__terminate_org_unit import (
+    TestingTerminateOrgUnit,
+    TestingTerminateOrgUnitOrgUnitTerminate,
 )
 from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
@@ -197,7 +225,6 @@ from .org_unit_data import (
     OrgUnitDataOrgUnits,
     OrgUnitDataOrgUnitsObjects,
     OrgUnitDataOrgUnitsObjectsCurrent,
-    OrgUnitDataOrgUnitsObjectsCurrentRoot,
 )
 from .org_unit_relations import (
     OrgUnitRelations,
@@ -366,7 +393,6 @@ __all__ = [
     "OrgUnitDataOrgUnits",
     "OrgUnitDataOrgUnitsObjects",
     "OrgUnitDataOrgUnitsObjectsCurrent",
-    "OrgUnitDataOrgUnitsObjectsCurrentRoot",
     "OrgUnitRelations",
     "OrgUnitRelationsOrgUnits",
     "OrgUnitRelationsOrgUnitsObjects",
@@ -424,12 +450,26 @@ __all__ = [
     "RolebindingRolebindingsObjects",
     "RolebindingRolebindingsObjectsCurrent",
     "RolebindingRolebindingsObjectsCurrentItuser",
+    "TestingCreateAddress",
+    "TestingCreateAddressAddressCreate",
     "TestingCreateClass",
     "TestingCreateClassClassCreate",
+    "TestingCreateEmployee",
+    "TestingCreateEmployeeEmployeeCreate",
+    "TestingCreateEngagement",
+    "TestingCreateEngagementEngagementCreate",
     "TestingCreateFacet",
     "TestingCreateFacetFacetCreate",
+    "TestingCreateManager",
+    "TestingCreateManagerManagerCreate",
     "TestingCreateOrgRoot",
     "TestingCreateOrgRootOrgCreate",
+    "TestingCreateOrgUnit",
+    "TestingCreateOrgUnitOrgUnitCreate",
+    "TestingTerminateManager",
+    "TestingTerminateManagerManagerTerminate",
+    "TestingTerminateOrgUnit",
+    "TestingTerminateOrgUnitOrgUnitTerminate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",

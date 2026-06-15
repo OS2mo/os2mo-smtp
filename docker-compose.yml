@@ -10,6 +10,7 @@ services:
     volumes:
       - ./mo_smtp:/app/mo_smtp
     networks:
+      - default
       - os2mo_default
     environment:
       FASTRAMQPI__LOG_LEVEL: "INFO"
@@ -27,6 +28,11 @@ services:
       SMTP_HOST: "mailcatcher"
       SMTP_SECURITY: "none"
       DRY_RUN: True
+
+      FASTRAMQPI__DATABASE__USER: "fastramqpi"
+      FASTRAMQPI__DATABASE__PASSWORD: "fastramqpi"
+      FASTRAMQPI__DATABASE__HOST: "db"
+      FASTRAMQPI__DATABASE__NAME: "fastramqpi"
 
       ENABLE_MANAGER_EVENTS: "True"
       ENABLE_ROLEBINDING_EVENTS: "True"
@@ -48,7 +54,16 @@ services:
     - "1080:1080"
     - "1025:1025"
     networks:
-      - os2mo_default
+      - default
+
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: "fastramqpi"
+      POSTGRES_PASSWORD: "fastramqpi"
+      POSTGRES_DB: "fastramqpi"
+    networks:
+      - default
 
 networks:
   os2mo_default:

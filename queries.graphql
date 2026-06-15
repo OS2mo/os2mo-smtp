@@ -31,6 +31,7 @@ query orgUnitAncestors($uuid: UUID!) {
     objects {
       current {
         ancestors {
+          uuid
           name
         }
         name
@@ -45,9 +46,6 @@ query orgUnitData($uuid: UUID!) {
       current {
         name
         user_key
-        root {
-          uuid
-        }
       }
     }
   }
@@ -182,6 +180,48 @@ mutation _Testing_CreateFacet($input: FacetCreateInput!) {
 
 mutation _Testing_CreateClass($input: ClassCreateInput!) {
   class_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateEmployee($input: EmployeeCreateInput!) {
+  employee_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateAddress($input: AddressCreateInput!) {
+  address_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+  org_unit_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateManager($input: ManagerCreateInput!) {
+  manager_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_TerminateManager($input: ManagerTerminateInput!) {
+  manager_terminate(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateEngagement($input: EngagementCreateInput!) {
+  engagement_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+  org_unit_terminate(input: $input) {
     uuid
   }
 }
