@@ -14,6 +14,14 @@ from ._testing__create_engagement import (
     TestingCreateEngagementEngagementCreate,
 )
 from ._testing__create_facet import TestingCreateFacet, TestingCreateFacetFacetCreate
+from ._testing__create_i_t_system import (
+    TestingCreateITSystem,
+    TestingCreateITSystemItsystemCreate,
+)
+from ._testing__create_i_t_user import (
+    TestingCreateITUser,
+    TestingCreateITUserItuserCreate,
+)
 from ._testing__create_manager import (
     TestingCreateManager,
     TestingCreateManagerManagerCreate,
@@ -26,6 +34,10 @@ from ._testing__create_org_unit import (
     TestingCreateOrgUnit,
     TestingCreateOrgUnitOrgUnitCreate,
 )
+from ._testing__create_rolebinding import (
+    TestingCreateRolebinding,
+    TestingCreateRolebindingRolebindingCreate,
+)
 from ._testing__terminate_manager import (
     TestingTerminateManager,
     TestingTerminateManagerManagerTerminate,
@@ -33,6 +45,10 @@ from ._testing__terminate_manager import (
 from ._testing__terminate_org_unit import (
     TestingTerminateOrgUnit,
     TestingTerminateOrgUnitOrgUnitTerminate,
+)
+from ._testing__terminate_rolebinding import (
+    TestingTerminateRolebinding,
+    TestingTerminateRolebindingRolebindingTerminate,
 )
 from .async_base_client import AsyncBaseClient
 from .employee_name import EmployeeName, EmployeeNameEmployees
@@ -42,11 +58,15 @@ from .input_types import (
     EmployeeCreateInput,
     EngagementCreateInput,
     FacetCreateInput,
+    ITSystemCreateInput,
+    ITUserCreateInput,
     ManagerCreateInput,
     ManagerTerminateInput,
     OrganisationCreate,
     OrganisationUnitCreateInput,
     OrganisationUnitTerminateInput,
+    RoleBindingCreateInput,
+    RoleBindingTerminateInput,
 )
 from .institution_address import InstitutionAddress, InstitutionAddressOrgUnits
 from .ituser import Ituser, ItuserItusers
@@ -445,3 +465,63 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingTerminateOrgUnit.parse_obj(data).org_unit_terminate
+
+    async def _testing__create_i_t_system(
+        self, input: ITSystemCreateInput
+    ) -> TestingCreateITSystemItsystemCreate:
+        query = gql("""
+            mutation _Testing_CreateITSystem($input: ITSystemCreateInput!) {
+              itsystem_create(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingCreateITSystem.parse_obj(data).itsystem_create
+
+    async def _testing__create_i_t_user(
+        self, input: ITUserCreateInput
+    ) -> TestingCreateITUserItuserCreate:
+        query = gql("""
+            mutation _Testing_CreateITUser($input: ITUserCreateInput!) {
+              ituser_create(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingCreateITUser.parse_obj(data).ituser_create
+
+    async def _testing__create_rolebinding(
+        self, input: RoleBindingCreateInput
+    ) -> TestingCreateRolebindingRolebindingCreate:
+        query = gql("""
+            mutation _Testing_CreateRolebinding($input: RoleBindingCreateInput!) {
+              rolebinding_create(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingCreateRolebinding.parse_obj(data).rolebinding_create
+
+    async def _testing__terminate_rolebinding(
+        self, input: RoleBindingTerminateInput
+    ) -> TestingTerminateRolebindingRolebindingTerminate:
+        query = gql("""
+            mutation _Testing_TerminateRolebinding($input: RoleBindingTerminateInput!) {
+              rolebinding_terminate(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingTerminateRolebinding.parse_obj(data).rolebinding_terminate
