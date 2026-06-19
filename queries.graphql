@@ -245,3 +245,17 @@ mutation _Testing_TerminateRolebinding($input: RoleBindingTerminateInput!) {
     uuid
   }
 }
+
+mutation _Testing_CreateRelatedUnits($input: RelatedUnitsUpdateInput!) {
+  related_units_update(input: $input) {
+    uuid
+  }
+}
+
+query _Testing_GetRelatedUnitsForOrgUnit($uuid: UUID!) {
+  related_units(filter: { org_unit: { uuids: [$uuid] }, from_date: null, to_date: null }) {
+    objects {
+      uuid
+    }
+  }
+}

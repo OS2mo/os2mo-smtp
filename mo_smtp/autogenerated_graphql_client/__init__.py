@@ -32,9 +32,18 @@ from ._testing__create_org_unit import (
     TestingCreateOrgUnit,
     TestingCreateOrgUnitOrgUnitCreate,
 )
+from ._testing__create_related_units import (
+    TestingCreateRelatedUnits,
+    TestingCreateRelatedUnitsRelatedUnitsUpdate,
+)
 from ._testing__create_rolebinding import (
     TestingCreateRolebinding,
     TestingCreateRolebindingRolebindingCreate,
+)
+from ._testing__get_related_units_for_org_unit import (
+    TestingGetRelatedUnitsForOrgUnit,
+    TestingGetRelatedUnitsForOrgUnitRelatedUnits,
+    TestingGetRelatedUnitsForOrgUnitRelatedUnitsObjects,
 )
 from ._testing__terminate_manager import (
     TestingTerminateManager,
@@ -482,8 +491,13 @@ __all__ = [
     "TestingCreateOrgRootOrgCreate",
     "TestingCreateOrgUnit",
     "TestingCreateOrgUnitOrgUnitCreate",
+    "TestingCreateRelatedUnits",
+    "TestingCreateRelatedUnitsRelatedUnitsUpdate",
     "TestingCreateRolebinding",
     "TestingCreateRolebindingRolebindingCreate",
+    "TestingGetRelatedUnitsForOrgUnit",
+    "TestingGetRelatedUnitsForOrgUnitRelatedUnits",
+    "TestingGetRelatedUnitsForOrgUnitRelatedUnitsObjects",
     "TestingTerminateManager",
     "TestingTerminateManagerManagerTerminate",
     "TestingTerminateOrgUnit",
