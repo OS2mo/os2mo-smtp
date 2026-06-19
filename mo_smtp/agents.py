@@ -29,6 +29,7 @@ from .dataloaders import get_org_unit_location
 from .dataloaders import get_org_unit_relations
 from .dataloaders import get_org_unit_root
 from .dataloaders import get_related_units_data
+from .dataloaders import root_uuid
 from .mail import EmailClient
 
 logger = structlog.get_logger()
@@ -162,15 +163,17 @@ async def _check_and_alert_org_unit_without_relation(
         log.info("Org unit not found")
         return
 
+    # Ancestors are already fetched here, so apply the rule directly rather than
+    # get_org_unit_root (which would re-query ancestors per unit).
     current = one(org_unit_data).current
-    if one(current.root).uuid != root:
+    if root_uuid(uuid, current.ancestors) != root:
         log.info("Org unit is not in the Lønorganisation")
         return
 
     if current.related_units:
         for relation in current.related_units:
             for org_unit in relation.org_units:
-                if one(org_unit.root).uuid != root:
+                if root_uuid(org_unit.uuid, org_unit.ancestors) != root:
                     log.info("Org unit has a relation outside of the Lønorganisation")
                     return
 

@@ -70,19 +70,20 @@ async def get_org_unit_location(mo: GraphQLClient, uuid: UUID):
     return org_unit_location
 
 
-async def get_org_unit_root(mo: GraphQLClient, uuid: UUID) -> UUID:
-    """Return the UUID of the org unit's root.
+def root_uuid(uuid: UUID, ancestors: list) -> UUID:
+    """An org unit's root: its top-most ancestor, or itself if it has none.
 
-    Derived from the ancestor chain rather than `root_response`: MO materialises
-    `root_response` unreliably (it can stay None for a unit's whole lifetime),
-    whereas the ancestor chain is consistent. Ancestors are ordered nearest-first,
-    so the last one is the root; a top-level unit has none and is its own root.
+    Derived from `ancestors` because MO's `root` field materialises unreliably.
+    Ancestors are nearest-first, so the last one is the root.
     """
+    return ancestors[-1].uuid if ancestors else uuid
+
+
+async def get_org_unit_root(mo: GraphQLClient, uuid: UUID) -> UUID:
+    """Fetch an org unit's ancestors and return its root (see `root_uuid`)."""
     gql_response = await mo.org_unit_ancestors(uuid)
     current = one(gql_response.objects).current
-    if current and current.ancestors:
-        return current.ancestors[-1].uuid
-    return uuid
+    return root_uuid(uuid, current.ancestors if current else [])
 
 
 async def get_org_unit_relations(mo: GraphQLClient, org_unit_uuid: UUID):
