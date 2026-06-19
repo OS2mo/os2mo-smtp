@@ -17,13 +17,14 @@ class OrgUnitRelationsOrgUnitsObjects(BaseModel):
 
 
 class OrgUnitRelationsOrgUnitsObjectsCurrent(BaseModel):
+    uuid: UUID
     name: str
-    root: list["OrgUnitRelationsOrgUnitsObjectsCurrentRoot"] | None
+    ancestors: list["OrgUnitRelationsOrgUnitsObjectsCurrentAncestors"]
     engagements: list["OrgUnitRelationsOrgUnitsObjectsCurrentEngagements"]
     related_units: list["OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnits"]
 
 
-class OrgUnitRelationsOrgUnitsObjectsCurrentRoot(BaseModel):
+class OrgUnitRelationsOrgUnitsObjectsCurrentAncestors(BaseModel):
     uuid: UUID
 
 
@@ -37,12 +38,12 @@ class OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnits(BaseModel):
 
 class OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnits(BaseModel):
     uuid: UUID
-    root: (
-        None | (list["OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnitsRoot"])
-    )
+    ancestors: list[
+        "OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnitsAncestors"
+    ]
 
 
-class OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnitsRoot(BaseModel):
+class OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnitsAncestors(BaseModel):
     uuid: UUID
 
 
@@ -50,8 +51,8 @@ OrgUnitRelations.update_forward_refs()
 OrgUnitRelationsOrgUnits.update_forward_refs()
 OrgUnitRelationsOrgUnitsObjects.update_forward_refs()
 OrgUnitRelationsOrgUnitsObjectsCurrent.update_forward_refs()
-OrgUnitRelationsOrgUnitsObjectsCurrentRoot.update_forward_refs()
+OrgUnitRelationsOrgUnitsObjectsCurrentAncestors.update_forward_refs()
 OrgUnitRelationsOrgUnitsObjectsCurrentEngagements.update_forward_refs()
 OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnits.update_forward_refs()
 OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnits.update_forward_refs()
-OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnitsRoot.update_forward_refs()
+OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnitsAncestors.update_forward_refs()

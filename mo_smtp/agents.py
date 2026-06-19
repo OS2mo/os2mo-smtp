@@ -142,6 +142,16 @@ async def alert_on_manager_removal(
     )
 
 
+def _root_uuid(uuid: UUID, ancestors: list) -> UUID:
+    """The org unit's root: its top-most ancestor, or itself if it has none.
+
+    Derived from `ancestors` rather than MO's `root`, which materialises
+    unreliably (see `get_org_unit_root`). Ancestors are ordered nearest-first,
+    so the last one is the root.
+    """
+    return ancestors[-1].uuid if ancestors else uuid
+
+
 async def _check_and_alert_org_unit_without_relation(
     uuid: UUID,
     mo: depends.GraphQLClient,
@@ -163,14 +173,14 @@ async def _check_and_alert_org_unit_without_relation(
         return
 
     current = one(org_unit_data).current
-    if one(current.root).uuid != root:
+    if _root_uuid(uuid, current.ancestors) != root:
         log.info("Org unit is not in the Lønorganisation")
         return
 
     if current.related_units:
         for relation in current.related_units:
             for org_unit in relation.org_units:
-                if one(org_unit.root).uuid != root:
+                if _root_uuid(org_unit.uuid, org_unit.ancestors) != root:
                     log.info("Org unit has a relation outside of the Lønorganisation")
                     return
 

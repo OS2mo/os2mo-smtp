@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 
 from .base_model import BaseModel
@@ -38,28 +37,6 @@ class RelatedUnitRegistrationsRelatedUnitsObjectsRegistrationsValiditiesOrgUnits
     BaseModel
 ):
     uuid: UUID
-    current: Optional[
-        "RelatedUnitRegistrationsRelatedUnitsObjectsRegistrationsValiditiesOrgUnitsResponseObjectsCurrent"
-    ]
-
-
-class RelatedUnitRegistrationsRelatedUnitsObjectsRegistrationsValiditiesOrgUnitsResponseObjectsCurrent(
-    BaseModel
-):
-    root: (
-        None
-        | (
-            list[
-                "RelatedUnitRegistrationsRelatedUnitsObjectsRegistrationsValiditiesOrgUnitsResponseObjectsCurrentRoot"
-            ]
-        )
-    )
-
-
-class RelatedUnitRegistrationsRelatedUnitsObjectsRegistrationsValiditiesOrgUnitsResponseObjectsCurrentRoot(
-    BaseModel
-):
-    uuid: UUID
 
 
 RelatedUnitRegistrations.update_forward_refs()
@@ -69,5 +46,3 @@ RelatedUnitRegistrationsRelatedUnitsObjectsRegistrations.update_forward_refs()
 RelatedUnitRegistrationsRelatedUnitsObjectsRegistrationsValidities.update_forward_refs()
 RelatedUnitRegistrationsRelatedUnitsObjectsRegistrationsValiditiesOrgUnitsResponse.update_forward_refs()
 RelatedUnitRegistrationsRelatedUnitsObjectsRegistrationsValiditiesOrgUnitsResponseObjects.update_forward_refs()
-RelatedUnitRegistrationsRelatedUnitsObjectsRegistrationsValiditiesOrgUnitsResponseObjectsCurrent.update_forward_refs()
-RelatedUnitRegistrationsRelatedUnitsObjectsRegistrationsValiditiesOrgUnitsResponseObjectsCurrentRoot.update_forward_refs()

@@ -151,8 +151,9 @@ class GraphQLClient(AsyncBaseClient):
               org_units(filter: {uuids: [$uuid]}) {
                 objects {
                   current {
+                    uuid
                     name
-                    root {
+                    ancestors {
                       uuid
                     }
                     engagements {
@@ -161,7 +162,7 @@ class GraphQLClient(AsyncBaseClient):
                     related_units {
                       org_units {
                         uuid
-                        root {
+                        ancestors {
                           uuid
                         }
                       }
@@ -228,11 +229,6 @@ class GraphQLClient(AsyncBaseClient):
                       org_units_response {
                         objects {
                           uuid
-                          current {
-                            root {
-                              uuid
-                            }
-                          }
                         }
                       }
                     }

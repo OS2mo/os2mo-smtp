@@ -174,8 +174,9 @@ async def test_handle_org_unit_not_in_loenorganisation(
                 "objects": [
                     {
                         "current": {
+                            "uuid": uuid4(),
                             "name": "org-unit-name",
-                            "root": [{"uuid": root_uuid}],
+                            "ancestors": [{"uuid": root_uuid}],
                             "engagements": [
                                 {"uuid": uuid4()},
                             ],
@@ -210,8 +211,9 @@ async def test_handle_org_unit_has_external_relation(
                 "objects": [
                     {
                         "current": {
+                            "uuid": org_unit_uuid,
                             "name": "org-unit-name",
-                            "root": [{"uuid": root_loen_org}],
+                            "ancestors": [{"uuid": root_loen_org}],
                             "engagements": [
                                 {"uuid": uuid4()},
                             ],
@@ -220,11 +222,11 @@ async def test_handle_org_unit_has_external_relation(
                                     "org_units": [
                                         {
                                             "uuid": org_unit_uuid,
-                                            "root": [{"uuid": root_loen_org}],
+                                            "ancestors": [{"uuid": root_loen_org}],
                                         },
                                         {
                                             "uuid": uuid4(),
-                                            "root": [{"uuid": uuid4()}],
+                                            "ancestors": [{"uuid": uuid4()}],
                                         },
                                     ]
                                 }
@@ -259,8 +261,9 @@ async def test_handle_org_unit_sends_email(
                 "objects": [
                     {
                         "current": {
+                            "uuid": uuid4(),
                             "name": "org-unit-name",
-                            "root": [{"uuid": root_loen_org}],
+                            "ancestors": [{"uuid": root_loen_org}],
                             "engagements": [
                                 {"uuid": uuid4()},
                             ],
@@ -302,8 +305,9 @@ async def test_handle_org_unit_sends_email_falls_back_to_receivers(
                 "objects": [
                     {
                         "current": {
+                            "uuid": uuid4(),
                             "name": "org-unit-name",
-                            "root": [{"uuid": root_loen_org}],
+                            "ancestors": [{"uuid": root_loen_org}],
                             "engagements": [
                                 {"uuid": uuid4()},
                             ],
@@ -343,8 +347,9 @@ async def test_handle_org_unit_sends_email_to_root(
                 "objects": [
                     {
                         "current": {
+                            "uuid": root_loen_org,
                             "name": "org-unit-name",
-                            "root": [{"uuid": root_loen_org}],
+                            "ancestors": [],
                             "engagements": [
                                 {"uuid": uuid4()},
                             ],
@@ -592,7 +597,11 @@ async def test_rolebinding_events_ituser_default_userkey(context: Context) -> No
 
 
 def _make_registration_response(org_unit_uuids: list):
-    """Helper to build the related_unit_registrations mock response."""
+    """Helper to build the related_unit_registrations mock response.
+
+    The handler only reads each org unit's `uuid` from this response; the
+    lønorg/root check is performed afterwards via `org_unit_relations`.
+    """
     return RelatedUnitRegistrationsRelatedUnits.parse_obj(
         {
             "objects": [
@@ -603,8 +612,7 @@ def _make_registration_response(org_unit_uuids: list):
                                 {
                                     "org_units_response": {
                                         "objects": [
-                                            {"uuid": uid, "current": current}
-                                            for uid, current in org_unit_uuids
+                                            {"uuid": uid} for uid in org_unit_uuids
                                         ]
                                     }
                                 }
@@ -651,7 +659,7 @@ async def test_handle_related_units_org_unit_not_in_loenorg(
         mo = AsyncMock()
 
         mo.related_unit_registrations.return_value = _make_registration_response(
-            [(org_unit_uuid, {"root": [{"uuid": other_root}]})]
+            [org_unit_uuid]
         )
 
         # The helper will be called but the org unit is not in lønorg
@@ -660,8 +668,9 @@ async def test_handle_related_units_org_unit_not_in_loenorg(
                 "objects": [
                     {
                         "current": {
+                            "uuid": org_unit_uuid,
                             "name": "Adm-enhed",
-                            "root": [{"uuid": other_root}],
+                            "ancestors": [{"uuid": other_root}],
                             "engagements": [{"uuid": uuid4()}],
                             "related_units": [],
                         },
@@ -695,10 +704,7 @@ async def test_handle_related_units_sends_email(
         mo = AsyncMock()
 
         mo.related_unit_registrations.return_value = _make_registration_response(
-            [
-                (loen_org_unit_uuid, {"root": [{"uuid": root_loen_org}]}),
-                (adm_org_unit_uuid, {"root": [{"uuid": adm_root}]}),
-            ]
+            [loen_org_unit_uuid, adm_org_unit_uuid]
         )
 
         # Return different data depending on which org unit is queried
@@ -709,8 +715,9 @@ async def test_handle_related_units_sends_email(
                         "objects": [
                             {
                                 "current": {
+                                    "uuid": loen_org_unit_uuid,
                                     "name": "Løn-enhed",
-                                    "root": [{"uuid": root_loen_org}],
+                                    "ancestors": [{"uuid": root_loen_org}],
                                     "engagements": [{"uuid": uuid4()}],
                                     "related_units": [],
                                 },
@@ -723,8 +730,9 @@ async def test_handle_related_units_sends_email(
                     "objects": [
                         {
                             "current": {
+                                "uuid": adm_org_unit_uuid,
                                 "name": "Adm-enhed",
-                                "root": [{"uuid": adm_root}],
+                                "ancestors": [{"uuid": adm_root}],
                                 "engagements": [{"uuid": uuid4()}],
                                 "related_units": [],
                             },
@@ -766,10 +774,7 @@ async def test_handle_related_units_has_relation(
         mo = AsyncMock()
 
         mo.related_unit_registrations.return_value = _make_registration_response(
-            [
-                (loen_org_unit_uuid, {"root": [{"uuid": root_loen_org}]}),
-                (adm_org_unit_uuid, {"root": [{"uuid": adm_root}]}),
-            ]
+            [loen_org_unit_uuid, adm_org_unit_uuid]
         )
 
         def org_unit_relations_side_effect(uuid):
@@ -779,19 +784,22 @@ async def test_handle_related_units_has_relation(
                         "objects": [
                             {
                                 "current": {
+                                    "uuid": loen_org_unit_uuid,
                                     "name": "Løn-enhed",
-                                    "root": [{"uuid": root_loen_org}],
+                                    "ancestors": [{"uuid": root_loen_org}],
                                     "engagements": [{"uuid": uuid4()}],
                                     "related_units": [
                                         {
                                             "org_units": [
                                                 {
                                                     "uuid": loen_org_unit_uuid,
-                                                    "root": [{"uuid": root_loen_org}],
+                                                    "ancestors": [
+                                                        {"uuid": root_loen_org}
+                                                    ],
                                                 },
                                                 {
                                                     "uuid": adm_org_unit_uuid,
-                                                    "root": [{"uuid": adm_root}],
+                                                    "ancestors": [{"uuid": adm_root}],
                                                 },
                                             ]
                                         }
@@ -806,8 +814,9 @@ async def test_handle_related_units_has_relation(
                     "objects": [
                         {
                             "current": {
+                                "uuid": adm_org_unit_uuid,
                                 "name": "Adm-enhed",
-                                "root": [{"uuid": adm_root}],
+                                "ancestors": [{"uuid": adm_root}],
                                 "engagements": [{"uuid": uuid4()}],
                                 "related_units": [],
                             },
@@ -838,7 +847,7 @@ async def test_handle_related_units_terminated_org_unit(
         mo = AsyncMock()
 
         mo.related_unit_registrations.return_value = _make_registration_response(
-            [(terminated_uuid, None)]
+            [terminated_uuid]
         )
 
         # The org unit is not found (terminated)
@@ -870,7 +879,7 @@ async def test_handle_related_units_org_unit_changed_root(
 
         # Registration still references the org unit (historical data)
         mo.related_unit_registrations.return_value = _make_registration_response(
-            [(moved_org_unit_uuid, {"root": [{"uuid": root_loen_org}]})]
+            [moved_org_unit_uuid]
         )
 
         # But the org unit's current root is different (it moved)
@@ -879,8 +888,9 @@ async def test_handle_related_units_org_unit_changed_root(
                 "objects": [
                     {
                         "current": {
+                            "uuid": moved_org_unit_uuid,
                             "name": "Flyttet-enhed",
-                            "root": [{"uuid": new_root}],
+                            "ancestors": [{"uuid": new_root}],
                             "engagements": [{"uuid": uuid4()}],
                             "related_units": [],
                         },
