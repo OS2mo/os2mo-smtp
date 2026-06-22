@@ -12,6 +12,14 @@ from ._testing__create_engagement import (
     TestingCreateEngagementEngagementCreate,
 )
 from ._testing__create_facet import TestingCreateFacet, TestingCreateFacetFacetCreate
+from ._testing__create_i_t_system import (
+    TestingCreateITSystem,
+    TestingCreateITSystemItsystemCreate,
+)
+from ._testing__create_i_t_user import (
+    TestingCreateITUser,
+    TestingCreateITUserItuserCreate,
+)
 from ._testing__create_manager import (
     TestingCreateManager,
     TestingCreateManagerManagerCreate,
@@ -24,6 +32,10 @@ from ._testing__create_org_unit import (
     TestingCreateOrgUnit,
     TestingCreateOrgUnitOrgUnitCreate,
 )
+from ._testing__create_rolebinding import (
+    TestingCreateRolebinding,
+    TestingCreateRolebindingRolebindingCreate,
+)
 from ._testing__terminate_manager import (
     TestingTerminateManager,
     TestingTerminateManagerManagerTerminate,
@@ -31,6 +43,10 @@ from ._testing__terminate_manager import (
 from ._testing__terminate_org_unit import (
     TestingTerminateOrgUnit,
     TestingTerminateOrgUnitOrgUnitTerminate,
+)
+from ._testing__terminate_rolebinding import (
+    TestingTerminateRolebinding,
+    TestingTerminateRolebindingRolebindingTerminate,
 )
 from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
@@ -460,16 +476,24 @@ __all__ = [
     "TestingCreateEngagementEngagementCreate",
     "TestingCreateFacet",
     "TestingCreateFacetFacetCreate",
+    "TestingCreateITSystem",
+    "TestingCreateITSystemItsystemCreate",
+    "TestingCreateITUser",
+    "TestingCreateITUserItuserCreate",
     "TestingCreateManager",
     "TestingCreateManagerManagerCreate",
     "TestingCreateOrgRoot",
     "TestingCreateOrgRootOrgCreate",
     "TestingCreateOrgUnit",
     "TestingCreateOrgUnitOrgUnitCreate",
+    "TestingCreateRolebinding",
+    "TestingCreateRolebindingRolebindingCreate",
     "TestingTerminateManager",
     "TestingTerminateManagerManagerTerminate",
     "TestingTerminateOrgUnit",
     "TestingTerminateOrgUnitOrgUnitTerminate",
+    "TestingTerminateRolebinding",
+    "TestingTerminateRolebindingRolebindingTerminate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",

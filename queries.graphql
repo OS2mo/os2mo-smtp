@@ -225,3 +225,27 @@ mutation _Testing_TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
     uuid
   }
 }
+
+mutation _Testing_CreateITSystem($input: ITSystemCreateInput!) {
+  itsystem_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateITUser($input: ITUserCreateInput!) {
+  ituser_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_CreateRolebinding($input: RoleBindingCreateInput!) {
+  rolebinding_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_TerminateRolebinding($input: RoleBindingTerminateInput!) {
+  rolebinding_terminate(input: $input) {
+    uuid
+  }
+}
