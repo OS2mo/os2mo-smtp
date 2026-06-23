@@ -103,6 +103,39 @@ async def test_terminated_manager_sends_email(
 
 
 @pytest.mark.integration_test
+async def test_terminated_manager_email_is_deduplicated(
+    graphql_client: GraphQLClient,
+    create_org_unit,
+    create_manager,
+    trigger_event,
+    get_sent_mails,
+) -> None:
+    """Re-triggering the same terminated manager does not send a second email."""
+    person = (
+        await graphql_client._testing__create_employee(
+            input=EmployeeCreateInput(given_name="Keith", surname="Richards")
+        )
+    ).uuid
+    org_unit = await create_org_unit(name="Stones")
+    manager = await create_manager(person=person, org_unit=org_unit)
+    await graphql_client._testing__terminate_manager(
+        input=ManagerTerminateInput(uuid=manager, to=PAST)
+    )
+
+    await trigger_event("manager", manager)
+    assert len(await get_sent_mails()) == 1
+
+    with capture_logs() as cap_logs:
+        await trigger_event("manager", manager)
+
+    assert (
+        "Manager removal email is identical to the previous. An email will not be sent"
+        in str(cap_logs)
+    )
+    assert len(await get_sent_mails()) == 1
+
+
+@pytest.mark.integration_test
 async def test_vacant_manager_sends_email(
     create_org_unit,
     create_manager,

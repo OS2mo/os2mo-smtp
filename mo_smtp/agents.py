@@ -16,7 +16,9 @@ from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from more_itertools import one
 from sqlalchemy import delete
+from sqlalchemy import exists
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from . import depends
@@ -52,6 +54,65 @@ def load_template(filename):
     return template
 
 
+def _content_hash(content: dict) -> str:
+    return hashlib.sha256(
+        json.dumps(content, sort_keys=True, default=str).encode()
+    ).hexdigest()
+
+
+async def _content_alert_already_sent(
+    session: AsyncSession,
+    alert_type: str,
+    object_uuid: UUID,
+    content: dict,
+) -> bool:
+    """Whether an alert with identical content was already sent for this object.
+
+    Used for the per-object notification alerts (ituser, manager); relation
+    alerts dedup on row presence instead (see
+    _check_and_alert_org_unit_without_relation). Pair with _record_content_alert,
+    called only after the email is actually sent.
+    """
+    return bool(
+        await session.scalar(
+            select(
+                exists().where(
+                    SentAlert.alert_type == alert_type,
+                    SentAlert.object_uuid == object_uuid,
+                    SentAlert.content_hash == _content_hash(content),
+                )
+            )
+        )
+    )
+
+
+async def _record_content_alert(
+    session: AsyncSession,
+    alert_type: str,
+    object_uuid: UUID,
+    content: dict,
+) -> None:
+    """Record the alert just sent for this object (one row per object per type).
+
+    Upserts on the (alert_type, object_uuid) unique constraint, so a concurrent
+    insert for the same object becomes an update rather than a constraint error.
+    """
+    content_hash = _content_hash(content)
+    stmt = (
+        pg_insert(SentAlert)
+        .values(
+            alert_type=alert_type,
+            object_uuid=object_uuid,
+            content_hash=content_hash,
+        )
+        .on_conflict_do_update(
+            index_elements=["alert_type", "object_uuid"],
+            set_={"content_hash": content_hash},
+        )
+    )
+    await session.execute(stmt)
+
+
 @router.post("/manager")
 async def alert_on_manager_removal(
     event: Event[UUID],
@@ -59,6 +120,7 @@ async def alert_on_manager_removal(
     email_client: depends.EmailClient,
     email_settings: depends.EmailSettings,
     settings: depends.Settings,
+    session: depends.Session,
 ) -> None:
     """
     Listen to manager events and inform `datagruppen` when a manager leaves the
@@ -129,6 +191,12 @@ async def alert_on_manager_removal(
         "user_key": org_unit.user_key,
     }
 
+    if await _content_alert_already_sent(session, "manager", uuid, template_context):
+        logger.info(
+            "Manager removal email is identical to the previous. An email will not be sent"
+        )
+        return
+
     message = template.render(context=template_context)
 
     if settings.alert_manager_removal_use_org_unit_emails:
@@ -147,6 +215,7 @@ async def alert_on_manager_removal(
         message,
         "html",
     )
+    await _record_content_alert(session, "manager", uuid, template_context)
 
 
 async def _check_and_alert_org_unit_without_relation(
@@ -349,16 +418,11 @@ async def generate_ituser_email(
         "roles": roles,
     }
 
-    content_hash = hashlib.sha256(
-        json.dumps(template_context, sort_keys=True, default=str).encode()
-    ).hexdigest()
-    existing = await session.scalar(
-        select(SentAlert).where(
-            SentAlert.alert_type == "ituser",
-            SentAlert.object_uuid == ituser_uuid,
-        )
-    )
-    if existing and existing.content_hash == content_hash:
+    # Dedup on a stable view of the content: role names sorted, rather than the
+    # order-sensitive role objects the template renders.
+    dedup_content = {**template_context, "roles": sorted(r.name for r in roles)}
+
+    if await _content_alert_already_sent(session, "ituser", ituser_uuid, dedup_content):
         logger.info("Email is identical to the previous. An email will not be sent")
         return
 
@@ -370,13 +434,4 @@ async def generate_ituser_email(
         message,
         "html",
     )
-    if existing:
-        existing.content_hash = content_hash
-    else:
-        session.add(
-            SentAlert(
-                alert_type="ituser",
-                object_uuid=ituser_uuid,
-                content_hash=content_hash,
-            )
-        )
+    await _record_content_alert(session, "ituser", ituser_uuid, dedup_content)
