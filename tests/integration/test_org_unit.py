@@ -146,3 +146,54 @@ async def test_loen_root_without_relation_uses_own_email(
     assert mail.subject == "Manglende relation i Lønorganisation"
     assert mail.recipients == ["<loenorg@example.com>"]
     assert mail.plain.strip() == missing_relation_body("Lønorganisation")
+
+
+@pytest.mark.integration_test
+async def test_org_unit_without_relation_deduplicates(
+    root_loen_org: UUID,
+    create_org_unit,
+    trigger_event,
+    get_sent_mails,
+) -> None:
+    """Re-triggering a still-unrelated lønorg unit does not send a second email."""
+    loen_root = await create_org_unit(name="Lønorganisation", uuid=root_loen_org)
+    loen_unit = await create_org_unit(name="Løn-enhed", parent=loen_root)
+
+    await trigger_event("org_unit", loen_unit)
+    assert len(await get_sent_mails()) == 1
+
+    with capture_logs() as cap_logs:
+        await trigger_event("org_unit", loen_unit)
+
+    assert "Alert already sent for this org unit" in str(cap_logs)
+    assert len(await get_sent_mails()) == 1
+
+
+@pytest.mark.integration_test
+async def test_org_unit_re_alerts_after_relation_restored(
+    root_loen_org: UUID,
+    create_org_unit,
+    create_related_units,
+    trigger_event,
+    get_sent_mails,
+) -> None:
+    """Regaining a relation clears the recorded alert, so a later removal re-alerts."""
+    loen_root = await create_org_unit(name="Lønorganisation", uuid=root_loen_org)
+    loen_unit = await create_org_unit(name="Løn-enhed", parent=loen_root)
+    adm_org = await create_org_unit(name="Administration")
+    adm_unit = await create_org_unit(name="Adm-enhed", parent=adm_org)
+
+    await trigger_event("org_unit", loen_unit)
+    assert len(await get_sent_mails()) == 1
+
+    await create_related_units(origin=loen_unit, destination=[adm_unit])
+    await trigger_event("org_unit", loen_unit)
+    assert len(await get_sent_mails()) == 1
+
+    await create_related_units(
+        origin=loen_unit,
+        destination=[],
+        from_=datetime(2020, 1, 1, tzinfo=timezone.utc),
+    )
+    await trigger_event("org_unit", loen_unit)
+    assert len(await get_sent_mails()) == 2

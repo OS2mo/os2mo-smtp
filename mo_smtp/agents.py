@@ -15,6 +15,7 @@ from fastramqpi.events import Event
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from more_itertools import one
+from sqlalchemy import delete
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -154,6 +155,7 @@ async def _check_and_alert_org_unit_without_relation(
     email_client: EmailClient,
     settings: depends.Settings,
     email_settings: depends.EmailSettings,
+    session: AsyncSession,
 ) -> None:
     """Check if an org unit in the Lønorganisation lacks a relation to
     an Administrationsorganisation unit, and send an alert email if so."""
@@ -180,7 +182,24 @@ async def _check_and_alert_org_unit_without_relation(
             for org_unit in relation.org_units:
                 if root_uuid(org_unit.uuid, org_unit.ancestors) != root:
                     log.info("Org unit has a relation outside of the Lønorganisation")
+                    # Clear any previous alert so a future removal re-alerts.
+                    await session.execute(
+                        delete(SentAlert).where(
+                            SentAlert.alert_type == "relation",
+                            SentAlert.object_uuid == uuid,
+                        )
+                    )
                     return
+
+    existing = await session.scalar(
+        select(SentAlert).where(
+            SentAlert.alert_type == "relation",
+            SentAlert.object_uuid == uuid,
+        )
+    )
+    if existing:
+        log.info("Alert already sent for this org unit. An email will not be sent")
+        return
 
     # TODO: Change this logic, but for now reuse the config
     if settings.alert_manager_removal_use_org_unit_emails:
@@ -201,6 +220,7 @@ async def _check_and_alert_org_unit_without_relation(
         ),
         texttype="plain",
     )
+    session.add(SentAlert(alert_type="relation", object_uuid=uuid))
 
 
 @router.post("/org_unit")
@@ -210,11 +230,12 @@ async def handle_org_unit(
     email_client: depends.EmailClient,
     settings: depends.Settings,
     email_settings: depends.EmailSettings,
+    session: depends.Session,
 ) -> None:
     uuid = event.subject
     logger.info("Obtained message", uuid=str(uuid))
     await _check_and_alert_org_unit_without_relation(
-        uuid, mo, email_client, settings, email_settings
+        uuid, mo, email_client, settings, email_settings, session
     )
 
 
@@ -225,6 +246,7 @@ async def handle_related_units(
     email_client: depends.EmailClient,
     settings: depends.Settings,
     email_settings: depends.EmailSettings,
+    session: depends.Session,
 ) -> None:
     """When a related_units object changes, check each lønorg unit involved
     to see if it still has a relation to an adm org.
@@ -256,7 +278,7 @@ async def handle_related_units(
 
     for org_unit_uuid in org_unit_uuids:
         await _check_and_alert_org_unit_without_relation(
-            org_unit_uuid, mo, email_client, settings, email_settings
+            org_unit_uuid, mo, email_client, settings, email_settings, session
         )
 
 
