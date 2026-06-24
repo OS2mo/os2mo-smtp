@@ -128,9 +128,8 @@ async def test_terminated_manager_email_is_deduplicated(
     with capture_logs() as cap_logs:
         await trigger_event("manager", manager)
 
-    assert (
-        "Manager removal email is identical to the previous. An email will not be sent"
-        in str(cap_logs)
+    assert "An identical alert has already been sent. An email will not be sent" in str(
+        cap_logs
     )
     assert len(await get_sent_mails()) == 1
 

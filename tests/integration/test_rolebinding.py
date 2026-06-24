@@ -156,5 +156,7 @@ async def test_rolebinding_identical_email_is_deduplicated(
     with capture_logs() as cap_logs:
         await trigger_event("rolebinding", rolebinding)
 
-    assert "Email is identical to the previous" in str(cap_logs)
+    assert "An identical alert has already been sent. An email will not be sent" in str(
+        cap_logs
+    )
     assert len(await get_sent_mails()) == 1

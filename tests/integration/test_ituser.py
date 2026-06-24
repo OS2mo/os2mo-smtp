@@ -114,5 +114,49 @@ async def test_ituser_identical_email_is_deduplicated(
     with capture_logs() as cap_logs:
         await trigger_event("ituser", ituser)
 
-    assert "Email is identical to the previous" in str(cap_logs)
+    assert "An identical alert has already been sent. An email will not be sent" in str(
+        cap_logs
+    )
     assert len(await get_sent_mails()) == 1
+
+
+@pytest.mark.integration_test
+async def test_ituser_re_alerts_and_updates_hash_when_content_changes(
+    graphql_client: GraphQLClient,
+    active_directory: UUID,
+    rolle: UUID,
+    rolle2: UUID,
+    create_ituser,
+    create_rolebinding,
+    trigger_event,
+    get_sent_mails,
+) -> None:
+    """Changed IT-user content re-alerts and records the new hash, so the changed
+    state then deduplicates against itself rather than the original content."""
+    person = (
+        await graphql_client._testing__create_employee(
+            input=EmployeeCreateInput(given_name="Mick", surname="Jagger")
+        )
+    ).uuid
+    ituser = await create_ituser(
+        user_key="ADUSER-123", itsystem=active_directory, person=person
+    )
+    await create_rolebinding(ituser=ituser, role=rolle)
+
+    await trigger_event("ituser", ituser)
+    assert len(await get_sent_mails()) == 1
+
+    # Content changes (a second role), so a fresh alert is sent and its hash stored.
+    await create_rolebinding(ituser=ituser, role=rolle2)
+    await trigger_event("ituser", ituser)
+    assert len(await get_sent_mails()) == 2
+
+    # The stored hash now matches the changed content, so a repeat is deduplicated.
+    # If the hash had not been updated, this would send a third email.
+    with capture_logs() as cap_logs:
+        await trigger_event("ituser", ituser)
+
+    assert "An identical alert has already been sent. An email will not be sent" in str(
+        cap_logs
+    )
+    assert len(await get_sent_mails()) == 2

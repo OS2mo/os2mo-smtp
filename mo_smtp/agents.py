@@ -193,7 +193,7 @@ async def alert_on_manager_removal(
 
     if await _content_alert_already_sent(session, "manager", uuid, template_context):
         logger.info(
-            "Manager removal email is identical to the previous. An email will not be sent"
+            "An identical alert has already been sent. An email will not be sent"
         )
         return
 
@@ -423,7 +423,9 @@ async def generate_ituser_email(
     dedup_content = {**template_context, "roles": sorted(r.name for r in roles)}
 
     if await _content_alert_already_sent(session, "ituser", ituser_uuid, dedup_content):
-        logger.info("Email is identical to the previous. An email will not be sent")
+        logger.info(
+            "An identical alert has already been sent. An email will not be sent"
+        )
         return
 
     message = template.render(context=template_context)
