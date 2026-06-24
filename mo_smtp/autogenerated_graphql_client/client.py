@@ -34,9 +34,17 @@ from ._testing__create_org_unit import (
     TestingCreateOrgUnit,
     TestingCreateOrgUnitOrgUnitCreate,
 )
+from ._testing__create_related_units import (
+    TestingCreateRelatedUnits,
+    TestingCreateRelatedUnitsRelatedUnitsUpdate,
+)
 from ._testing__create_rolebinding import (
     TestingCreateRolebinding,
     TestingCreateRolebindingRolebindingCreate,
+)
+from ._testing__get_related_units_for_org_unit import (
+    TestingGetRelatedUnitsForOrgUnit,
+    TestingGetRelatedUnitsForOrgUnitRelatedUnits,
 )
 from ._testing__terminate_manager import (
     TestingTerminateManager,
@@ -65,6 +73,7 @@ from .input_types import (
     OrganisationCreate,
     OrganisationUnitCreateInput,
     OrganisationUnitTerminateInput,
+    RelatedUnitsUpdateInput,
     RoleBindingCreateInput,
     RoleBindingTerminateInput,
 )
@@ -171,8 +180,9 @@ class GraphQLClient(AsyncBaseClient):
               org_units(filter: {uuids: [$uuid]}) {
                 objects {
                   current {
+                    uuid
                     name
-                    root {
+                    ancestors {
                       uuid
                     }
                     engagements {
@@ -181,7 +191,7 @@ class GraphQLClient(AsyncBaseClient):
                     related_units {
                       org_units {
                         uuid
-                        root {
+                        ancestors {
                           uuid
                         }
                       }
@@ -248,11 +258,6 @@ class GraphQLClient(AsyncBaseClient):
                       org_units_response {
                         objects {
                           uuid
-                          current {
-                            root {
-                              uuid
-                            }
-                          }
                         }
                       }
                     }
@@ -525,3 +530,37 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingTerminateRolebinding.parse_obj(data).rolebinding_terminate
+
+    async def _testing__create_related_units(
+        self, input: RelatedUnitsUpdateInput
+    ) -> TestingCreateRelatedUnitsRelatedUnitsUpdate:
+        query = gql("""
+            mutation _Testing_CreateRelatedUnits($input: RelatedUnitsUpdateInput!) {
+              related_units_update(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingCreateRelatedUnits.parse_obj(data).related_units_update
+
+    async def _testing__get_related_units_for_org_unit(
+        self, uuid: UUID
+    ) -> TestingGetRelatedUnitsForOrgUnitRelatedUnits:
+        query = gql("""
+            query _Testing_GetRelatedUnitsForOrgUnit($uuid: UUID!) {
+              related_units(
+                filter: {org_unit: {uuids: [$uuid]}, from_date: null, to_date: null}
+              ) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """)
+        variables: dict[str, object] = {"uuid": uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingGetRelatedUnitsForOrgUnit.parse_obj(data).related_units

@@ -55,8 +55,9 @@ query orgUnitRelations($uuid: UUID!) {
   org_units(filter: { uuids: [$uuid] }) {
     objects {
       current {
+        uuid
         name
-        root {
+        ancestors {
           uuid
         }
         engagements {
@@ -65,7 +66,7 @@ query orgUnitRelations($uuid: UUID!) {
         related_units {
           org_units {
             uuid
-            root {
+            ancestors {
               uuid
             }
           }
@@ -111,11 +112,6 @@ query relatedUnitRegistrations($uuid: UUID!) {
           org_units_response {
             objects {
               uuid
-              current {
-                root {
-                  uuid
-                }
-              }
             }
           }
         }
@@ -247,5 +243,19 @@ mutation _Testing_CreateRolebinding($input: RoleBindingCreateInput!) {
 mutation _Testing_TerminateRolebinding($input: RoleBindingTerminateInput!) {
   rolebinding_terminate(input: $input) {
     uuid
+  }
+}
+
+mutation _Testing_CreateRelatedUnits($input: RelatedUnitsUpdateInput!) {
+  related_units_update(input: $input) {
+    uuid
+  }
+}
+
+query _Testing_GetRelatedUnitsForOrgUnit($uuid: UUID!) {
+  related_units(filter: { org_unit: { uuids: [$uuid] }, from_date: null, to_date: null }) {
+    objects {
+      uuid
+    }
   }
 }

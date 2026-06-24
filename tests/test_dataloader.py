@@ -159,8 +159,9 @@ async def test_get_org_unit_relations():
         OrgUnitRelationsOrgUnitsObjects.parse_obj(
             {
                 "current": {
+                    "uuid": uuid4(),
                     "name": "org-unit-name",
-                    "root": [{"uuid": root_org}],
+                    "ancestors": [{"uuid": root_org}],
                     "engagements": [
                         {"uuid": uuid4()},
                     ],
@@ -169,7 +170,7 @@ async def test_get_org_unit_relations():
                             "org_units": [
                                 {
                                     "uuid": uuid4(),
-                                    "root": [{"uuid": root_org}],
+                                    "ancestors": [{"uuid": root_org}],
                                 }
                             ]
                         }
