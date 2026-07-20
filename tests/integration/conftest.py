@@ -198,6 +198,11 @@ async def rolle(graphql_client: GraphQLClient, role_facet: UUID) -> UUID:
 
 
 @pytest.fixture
+async def rolle2(graphql_client: GraphQLClient, role_facet: UUID) -> UUID:
+    return await _create_class(graphql_client, role_facet, "Rolle2", "Rolle2")
+
+
+@pytest.fixture
 async def active_directory(root_org: UUID, graphql_client: GraphQLClient) -> UUID:
     """An 'Active Directory' IT system to hang IT-users on."""
     r = await graphql_client._testing__create_i_t_system(
