@@ -18,7 +18,11 @@ td, th {
 </head>
   <body>
     <p>
+      {% if context.terminated %}
+      Denne besked er for at gøre opmærksom på, at følgende bruger skal nedlægges i {{ context.itsystem }} pr. {{ context.to_date }}:
+      {% else %}
       Denne besked er for at gøre opmærksom på, at følgende bruger skal oprettes i {{ context.itsystem }}:
+      {% endif %}
       <br><br>
 
       <table>
@@ -37,7 +41,11 @@ td, th {
       </table>
       <br>
 
+      {% if context.terminated %}
+      Brugeren havde følgende roller:
+      {% else %}
       Brugeren skal tildeles følgende roller:
+      {% endif %}
       <ul>
       {% for role in context.roles %}
         <li>{{ role.name }}</li>
