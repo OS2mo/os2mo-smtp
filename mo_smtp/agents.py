@@ -151,7 +151,8 @@ async def alert_on_manager_removal(
         to_datetime = from_date.replace(tzinfo=None)
         template = load_template("alert_on_vacant_manager.html")
         logger.info("Vacant from (utc+0): ", datetime=to_datetime)
-    else:  # branch for terminated manager object
+    else:  # branch for a manager object with an end date (possibly future)
+        assert to_date is not None  # both branches above require `not to_date`
         # Format the to-date as a datetime object at UTC+0
         to_datetime = to_date.replace(tzinfo=None)
         template = load_template("alert_on_manager_termination.html")
