@@ -46,6 +46,10 @@ from ._testing__get_related_units_for_org_unit import (
     TestingGetRelatedUnitsForOrgUnit,
     TestingGetRelatedUnitsForOrgUnitRelatedUnits,
 )
+from ._testing__terminate_i_t_user import (
+    TestingTerminateITUser,
+    TestingTerminateITUserItuserTerminate,
+)
 from ._testing__terminate_manager import (
     TestingTerminateManager,
     TestingTerminateManagerManagerTerminate,
@@ -68,6 +72,7 @@ from .input_types import (
     FacetCreateInput,
     ITSystemCreateInput,
     ITUserCreateInput,
+    ITUserTerminateInput,
     ManagerCreateInput,
     ManagerTerminateInput,
     OrganisationCreate,
@@ -78,7 +83,7 @@ from .input_types import (
     RoleBindingTerminateInput,
 )
 from .institution_address import InstitutionAddress, InstitutionAddressOrgUnits
-from .ituser import Ituser, ItuserItusers
+from .ituser_validities import ItuserValidities, ItuserValiditiesItusers
 from .manager_data import ManagerData, ManagerDataManagers
 from .org_unit_address import OrgUnitAddress, OrgUnitAddressOrgUnits
 from .org_unit_ancestors import OrgUnitAncestors, OrgUnitAncestorsOrgUnits
@@ -290,12 +295,12 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return Rolebinding.parse_obj(data).rolebindings
 
-    async def ituser(self, uuid: UUID) -> ItuserItusers:
+    async def ituser_validities(self, uuid: UUID) -> ItuserValiditiesItusers:
         query = gql("""
-            query ituser($uuid: UUID!) {
-              itusers(filter: {uuids: [$uuid]}) {
+            query ituserValidities($uuid: UUID!) {
+              itusers(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
-                  current {
+                  validities {
                     user_key
                     rolebindings {
                       role {
@@ -311,6 +316,10 @@ class GraphQLClient(AsyncBaseClient):
                       name
                       uuid
                     }
+                    validity {
+                      from
+                      to
+                    }
                   }
                 }
               }
@@ -319,7 +328,7 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"uuid": uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return Ituser.parse_obj(data).itusers
+        return ItuserValidities.parse_obj(data).itusers
 
     async def _testing__create_org_root(
         self, input: OrganisationCreate
@@ -500,6 +509,21 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingCreateITUser.parse_obj(data).ituser_create
+
+    async def _testing__terminate_i_t_user(
+        self, input: ITUserTerminateInput
+    ) -> TestingTerminateITUserItuserTerminate:
+        query = gql("""
+            mutation _Testing_TerminateITUser($input: ITUserTerminateInput!) {
+              ituser_terminate(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingTerminateITUser.parse_obj(data).ituser_terminate
 
     async def _testing__create_rolebinding(
         self, input: RoleBindingCreateInput
