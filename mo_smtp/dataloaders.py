@@ -86,6 +86,21 @@ async def get_org_unit_root(mo: GraphQLClient, uuid: UUID) -> UUID:
     return root_uuid(uuid, current.ancestors if current else [])
 
 
+async def get_org_unit_ancestor_uuids(mo: GraphQLClient, uuid: UUID) -> set[UUID]:
+    """The org unit's own UUID plus all its ancestor UUIDs.
+
+    Empty if the org unit has no current state — it doesn't exist, or is
+    terminated — since MO's current query returns no objects for
+    it.
+    """
+    gql_response = await mo.org_unit_ancestors(uuid)
+    if not gql_response.objects:
+        return set()
+    current = one(gql_response.objects).current
+    ancestors = {ancestor.uuid for ancestor in current.ancestors} if current else set()
+    return {uuid} | ancestors
+
+
 async def get_org_unit_relations(mo: GraphQLClient, org_unit_uuid: UUID):
     gql_response = await mo.org_unit_relations(org_unit_uuid)
     return gql_response.objects

@@ -31,6 +31,7 @@ from .dataloaders import get_ituser
 from .dataloaders import get_ituser_uuid_by_rolebinding
 from .dataloaders import get_manager_data
 from .dataloaders import get_org_unit_address
+from .dataloaders import get_org_unit_ancestor_uuids
 from .dataloaders import get_org_unit_data
 from .dataloaders import get_org_unit_location
 from .dataloaders import get_org_unit_relations
@@ -155,6 +156,18 @@ async def alert_on_manager_removal(
         to_datetime = to_date.replace(tzinfo=None)
         template = load_template("alert_on_manager_termination.html")
         logger.info("Terminate from(utc+0): ", datetime=to_datetime)
+
+    if settings.alert_manager_removal_exclude_org_units:
+        ancestor_uuids = await get_org_unit_ancestor_uuids(mo, org_unit_uuid)
+        excluded = ancestor_uuids & set(
+            settings.alert_manager_removal_exclude_org_units
+        )
+        if excluded:
+            logger.info(
+                "Org unit or ancestor is excluded from manager removal alerts",
+                excluded=excluded,
+            )
+            return
 
     # Get the current time in UTC+0
     now = datetime.datetime.utcnow()

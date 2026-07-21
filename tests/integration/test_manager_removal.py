@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
+import json
 from datetime import date
 from datetime import datetime
 from datetime import timezone
@@ -27,6 +28,8 @@ PAST = datetime(2020, 1, 1, tzinfo=MO_TZ)
 FUTURE = datetime(2099, 1, 1, tzinfo=MO_TZ)
 # Validity for created objects — far enough in the past that they're current.
 SEED = RAValidityInput(from_=datetime(1930, 1, 1, tzinfo=timezone.utc))
+# A fixed UUID used as the excluded org unit in the exclude-list tests.
+EXCLUDED_ORG_UNIT = UUID("00000000-0000-0000-0000-000000000042")
 
 
 @pytest.mark.integration_test
@@ -377,3 +380,99 @@ async def test_terminated_manager_on_root_emails_root_unit(
     assert mail.subject == "En medarbejder er blevet fjernet fra lederfanen"
     assert mail.recipients == ["<root@example.com>"]
     assert mail.html.strip() == expected_body.strip()
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {"ALERT_MANAGER_REMOVAL_EXCLUDE_ORG_UNITS": json.dumps([str(EXCLUDED_ORG_UNIT)])}
+)
+async def test_excluded_ancestor_skips_alert(
+    graphql_client: GraphQLClient,
+    create_org_unit,
+    create_manager,
+    trigger_event,
+    get_sent_mails,
+) -> None:
+    """A terminated manager whose org unit has an ancestor in the exclude list
+    sends no email."""
+    excluded = await create_org_unit(name="Excluded", uuid=EXCLUDED_ORG_UNIT)
+    child = await create_org_unit(name="Child", parent=excluded)
+    person = (
+        await graphql_client._testing__create_employee(
+            input=EmployeeCreateInput(given_name="Keith", surname="Richards")
+        )
+    ).uuid
+    manager = await create_manager(person=person, org_unit=child)
+    await graphql_client._testing__terminate_manager(
+        input=ManagerTerminateInput(uuid=manager, to=PAST)
+    )
+
+    with capture_logs() as cap_logs:
+        await trigger_event("manager", manager)
+
+    assert "Org unit or ancestor is excluded from manager removal alerts" in str(
+        cap_logs
+    )
+    assert await get_sent_mails() == []
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {"ALERT_MANAGER_REMOVAL_EXCLUDE_ORG_UNITS": json.dumps([str(EXCLUDED_ORG_UNIT)])}
+)
+async def test_excluded_direct_match_skips_alert(
+    graphql_client: GraphQLClient,
+    create_org_unit,
+    create_manager,
+    trigger_event,
+    get_sent_mails,
+) -> None:
+    """A terminated manager in an org unit that is itself excluded sends no email."""
+    excluded = await create_org_unit(name="Excluded", uuid=EXCLUDED_ORG_UNIT)
+    person = (
+        await graphql_client._testing__create_employee(
+            input=EmployeeCreateInput(given_name="Keith", surname="Richards")
+        )
+    ).uuid
+    manager = await create_manager(person=person, org_unit=excluded)
+    await graphql_client._testing__terminate_manager(
+        input=ManagerTerminateInput(uuid=manager, to=PAST)
+    )
+
+    with capture_logs() as cap_logs:
+        await trigger_event("manager", manager)
+
+    assert "Org unit or ancestor is excluded from manager removal alerts" in str(
+        cap_logs
+    )
+    assert await get_sent_mails() == []
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {"ALERT_MANAGER_REMOVAL_EXCLUDE_ORG_UNITS": json.dumps([str(EXCLUDED_ORG_UNIT)])}
+)
+async def test_exclude_set_but_no_match_sends_email(
+    graphql_client: GraphQLClient,
+    create_org_unit,
+    create_manager,
+    trigger_event,
+    get_sent_mails,
+) -> None:
+    """With an exclude list set that matches neither the org unit nor an ancestor,
+    a terminated manager still triggers the alert."""
+    org_unit = await create_org_unit(name="Stones", user_key="stones")
+    person = (
+        await graphql_client._testing__create_employee(
+            input=EmployeeCreateInput(given_name="Keith", surname="Richards")
+        )
+    ).uuid
+    manager = await create_manager(person=person, org_unit=org_unit)
+    await graphql_client._testing__terminate_manager(
+        input=ManagerTerminateInput(uuid=manager, to=PAST)
+    )
+
+    await trigger_event("manager", manager)
+
+    mail = one(await get_sent_mails())
+    assert mail.subject == "En medarbejder er blevet fjernet fra lederfanen"
