@@ -447,3 +447,69 @@ async def test_ituser_termination_resolves_multiple_rolebindings(
     # Assert the rendered list items, not bare substrings ("Rolle" ⊂ "Rolle2").
     assert "<li>Rolle</li>" in termination.html
     assert "<li>Rolle2</li>" in termination.html
+
+
+@pytest.mark.integration_test
+async def test_ituser_validity_gap_reads_as_active_not_terminated(
+    graphql_client: GraphQLClient,
+    active_directory: UUID,
+    rolle: UUID,
+    create_ituser: Callable[..., Awaitable[UUID]],
+    create_rolebinding: Callable[..., Awaitable[UUID]],
+    trigger_event: Callable[[str, UUID], Awaitable[None]],
+    get_sent_mails: Callable[[], Awaitable[list[Mail]]],
+) -> None:
+    """A hole in the validity — a past (ended) segment plus a future segment,
+    with nothing spanning now — reads as active, not terminated.
+
+    With no current validity, `extract_current_or_latest_validity` falls back to
+    the latest-ending one, and the open-ended future segment wins. Its `to` is
+    None, so the IT-user is not flagged terminated: a gap (e.g. an employee
+    scheduled to return) sends an 'oprettet' notice for the upcoming validity,
+    never a premature 'nedlagt'.
+    """
+    person = (
+        await graphql_client._testing__create_employee(
+            input=EmployeeCreateInput(given_name="Mick", surname="Jagger")
+        )
+    ).uuid
+    ituser = await create_ituser(
+        user_key="ADUSER-123", itsystem=active_directory, person=person
+    )
+    await create_rolebinding(ituser=ituser, role=rolle)
+
+    await trigger_event("ituser", ituser)
+    assert len(await get_sent_mails()) == 1
+
+    # Build the hole: terminate in the past, then add a segment starting far in
+    # the future. Now (between them) no validity is current.
+    await graphql_client._testing__terminate_i_t_user(
+        input=ITUserTerminateInput(uuid=ituser, to=PAST)
+    )
+    await graphql_client._testing__update_i_t_user(
+        input=ITUserUpdateInput(
+            uuid=ituser,
+            user_key="ADUSER-456",
+            itsystem=active_directory,
+            person=person,
+            validity=RAValidityInput(from_=FUTURE),
+        )
+    )
+    await trigger_event("ituser", ituser)
+
+    # The future (open-ended) segment is chosen, so it reads as active: a second
+    # 'oprettet' for the upcoming user_key. Assert the whole rendered mail.
+    expected_body = load_template("alert_on_rolebinding.html").render(
+        context={
+            "person": "Mick Jagger",
+            "ituser": "ADUSER-456",
+            "itsystem": "Active Directory",
+            "roles": [{"name": "Rolle"}],
+        }
+    )
+    mails = await get_sent_mails()
+    assert len(mails) == 2
+    latest = mails[-1]
+    assert latest.subject == "En IT-bruger er blevet oprettet i MO"
+    assert latest.html is not None
+    assert latest.html.strip() == expected_body.strip()
