@@ -133,13 +133,14 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
         mo: depends.GraphQLClient,
         queue_email_client: depends.EmailClient,
         queue_email_settings: depends.EmailSettings,
+        queue_settings: depends.Settings,
     ) -> dict[str, int]:
         """
         Process the notification queue now instead of waiting for the schedule
         — for example to empty a backlog after downtime.
         """
         return await process_pending(
-            sessionmaker, mo, queue_email_client, queue_email_settings
+            sessionmaker, mo, queue_email_client, queue_email_settings, queue_settings
         )
 
     return fastramqpi

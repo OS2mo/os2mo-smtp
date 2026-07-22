@@ -134,7 +134,21 @@ async def alert_on_manager_removal(
 
     Developed for Silkeborg Kommune
     """
-    uuid = event.subject
+    if settings.enable_notification_queue:
+        return await enqueue(session, "manager", event.subject)
+    return await generate_manager_removal_email(
+        event.subject, mo, email_client, email_settings, settings, session
+    )
+
+
+async def generate_manager_removal_email(
+    uuid: UUID,
+    mo: depends.GraphQLClient,
+    email_client: EmailClient,
+    email_settings: depends.EmailSettings,
+    settings: depends.Settings,
+    session: AsyncSession,
+) -> None:
     logger.info("Listening on a manager event with uuid:", uuid=uuid)
 
     # Load manager data from MO
@@ -376,6 +390,7 @@ async def alert_on_rolebinding(
     mo: depends.GraphQLClient,
     email_client: depends.EmailClient,
     email_settings: depends.EmailSettings,
+    settings: depends.Settings,
     session: depends.Session,
 ) -> None:
     uuid = event.subject
@@ -386,7 +401,7 @@ async def alert_on_rolebinding(
         )
         return None
     return await generate_ituser_email(
-        ituser_uuid, mo, email_client, email_settings, session
+        ituser_uuid, mo, email_client, email_settings, settings, session
     )
 
 
@@ -402,7 +417,7 @@ async def alert_on_ituser(
     if settings.enable_notification_queue:
         return await enqueue(session, "ituser", event.subject)
     return await generate_ituser_email(
-        event.subject, mo, email_client, email_settings, session
+        event.subject, mo, email_client, email_settings, settings, session
     )
 
 
@@ -411,6 +426,7 @@ async def generate_ituser_email(
     mo: depends.GraphQLClient,
     email_client: EmailClient,
     email_settings: depends.EmailSettings,
+    settings: depends.Settings,
     session: AsyncSession,
 ) -> None:
     # Read all validities (not just `current`) so a terminated IT-user is
@@ -482,7 +498,9 @@ async def generate_ituser_email(
 
 
 # What the notification queue runs for each queued object, by alert type.
-# The remaining agents are migrated to the queue one by one.
+# Processors share one signature: (uuid, mo, email_client, email_settings,
+# settings, session). The remaining agents are migrated to the queue one by one.
 QUEUE_PROCESSORS = {
     "ituser": generate_ituser_email,
+    "manager": generate_manager_removal_email,
 }
