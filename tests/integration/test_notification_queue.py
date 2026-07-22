@@ -139,6 +139,41 @@ async def test_manager_event_queues_and_flush_sends(
 
 
 @pytest.mark.integration_test
+@pytest.mark.envvar({"ENABLE_NOTIFICATION_QUEUE": "true"})
+async def test_rolebinding_and_ituser_events_coalesce(
+    graphql_client: GraphQLClient,
+    active_directory: UUID,
+    rolle: UUID,
+    create_ituser: Callable[..., Awaitable[UUID]],
+    create_rolebinding: Callable[..., Awaitable[UUID]],
+    trigger_event: Callable[[str, UUID], Awaitable[None]],
+    get_sent_mails: Callable[[], Awaitable[list[Mail]]],
+    test_client: AsyncClient,
+) -> None:
+    """A rolebinding event is queued as its resolved IT-user, so it coalesces
+    with a direct ituser event for the same IT-user into one email."""
+    person = (
+        await graphql_client._testing__create_employee(
+            input=EmployeeCreateInput(given_name="Mick", surname="Jagger")
+        )
+    ).uuid
+    ituser = await create_ituser(
+        user_key="ADUSER-123", itsystem=active_directory, person=person
+    )
+    rolebinding = await create_rolebinding(ituser=ituser, role=rolle)
+
+    # Both events arrive before the queue is processed.
+    await trigger_event("rolebinding", rolebinding)
+    await trigger_event("ituser", ituser)
+    assert await get_sent_mails() == []
+
+    r = await test_client.post("/process_notification_queue")
+    assert r.json() == {"processed": 1, "failed": 0}
+    mail = one(await get_sent_mails())
+    assert mail.subject == "En IT-bruger er blevet oprettet i MO"
+
+
+@pytest.mark.integration_test
 async def test_queue_disabled_sends_immediately(
     graphql_client: GraphQLClient,
     active_directory: UUID,

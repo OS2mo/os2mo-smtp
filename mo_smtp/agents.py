@@ -400,6 +400,10 @@ async def alert_on_rolebinding(
             "IT-user is possibly terminated or doesn't exist. An email will not be sent"
         )
         return None
+    # Queued as the resolved IT-user: the rolebinding may be unresolvable by the
+    # time the queue is processed, and this coalesces with direct ituser events.
+    if settings.enable_notification_queue:
+        return await enqueue(session, "ituser", ituser_uuid)
     return await generate_ituser_email(
         ituser_uuid, mo, email_client, email_settings, settings, session
     )
