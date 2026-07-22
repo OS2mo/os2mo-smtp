@@ -244,6 +244,12 @@ mutation _Testing_TerminateITUser($input: ITUserTerminateInput!) {
   }
 }
 
+mutation _Testing_UpdateITUser($input: ITUserUpdateInput!) {
+  ituser_update(input: $input) {
+    uuid
+  }
+}
+
 mutation _Testing_CreateRolebinding($input: RoleBindingCreateInput!) {
   rolebinding_create(input: $input) {
     uuid

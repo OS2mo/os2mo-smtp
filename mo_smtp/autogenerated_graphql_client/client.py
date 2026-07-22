@@ -62,6 +62,10 @@ from ._testing__terminate_rolebinding import (
     TestingTerminateRolebinding,
     TestingTerminateRolebindingRolebindingTerminate,
 )
+from ._testing__update_i_t_user import (
+    TestingUpdateITUser,
+    TestingUpdateITUserItuserUpdate,
+)
 from .async_base_client import AsyncBaseClient
 from .employee_name import EmployeeName, EmployeeNameEmployees
 from .input_types import (
@@ -73,6 +77,7 @@ from .input_types import (
     ITSystemCreateInput,
     ITUserCreateInput,
     ITUserTerminateInput,
+    ITUserUpdateInput,
     ManagerCreateInput,
     ManagerTerminateInput,
     OrganisationCreate,
@@ -524,6 +529,21 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingTerminateITUser.parse_obj(data).ituser_terminate
+
+    async def _testing__update_i_t_user(
+        self, input: ITUserUpdateInput
+    ) -> TestingUpdateITUserItuserUpdate:
+        query = gql("""
+            mutation _Testing_UpdateITUser($input: ITUserUpdateInput!) {
+              ituser_update(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingUpdateITUser.parse_obj(data).ituser_update
 
     async def _testing__create_rolebinding(
         self, input: RoleBindingCreateInput

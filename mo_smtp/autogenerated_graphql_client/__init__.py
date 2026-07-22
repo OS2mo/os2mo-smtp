@@ -61,6 +61,10 @@ from ._testing__terminate_rolebinding import (
     TestingTerminateRolebinding,
     TestingTerminateRolebindingRolebindingTerminate,
 )
+from ._testing__update_i_t_user import (
+    TestingUpdateITUser,
+    TestingUpdateITUserItuserUpdate,
+)
 from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
 from .client import GraphQLClient
@@ -512,6 +516,8 @@ __all__ = [
     "TestingTerminateOrgUnitOrgUnitTerminate",
     "TestingTerminateRolebinding",
     "TestingTerminateRolebindingRolebindingTerminate",
+    "TestingUpdateITUser",
+    "TestingUpdateITUserItuserUpdate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",
