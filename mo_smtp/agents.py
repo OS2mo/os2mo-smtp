@@ -44,6 +44,7 @@ from .dataloaders import root_uuid
 from .helpers import extract_current_or_latest_validity
 from .mail import EmailClient
 from .models import SentAlert
+from .notification_queue import enqueue
 
 logger = structlog.get_logger()
 
@@ -395,8 +396,11 @@ async def alert_on_ituser(
     mo: depends.GraphQLClient,
     email_client: depends.EmailClient,
     email_settings: depends.EmailSettings,
+    settings: depends.Settings,
     session: depends.Session,
 ) -> None:
+    if settings.enable_notification_queue:
+        return await enqueue(session, "ituser", event.subject)
     return await generate_ituser_email(
         event.subject, mo, email_client, email_settings, session
     )
@@ -475,3 +479,10 @@ async def generate_ituser_email(
     )
     email_client.send_email(set(email_settings.receivers), subject, message, "html")
     await _record_content_alert(session, "ituser", ituser_uuid, dedup_content)
+
+
+# What the notification queue runs for each queued object, by alert type.
+# The remaining agents are migrated to the queue one by one.
+QUEUE_PROCESSORS = {
+    "ituser": generate_ituser_email,
+}

@@ -33,3 +33,20 @@ class SentAlert(Base):
     object_uuid: Mapped[UUID]
     content_hash: Mapped[str | None] = mapped_column(String(64))
     sent_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class PendingNotification(Base):
+    """An object awaiting evaluation by the notification queue.
+
+    One row per object per alert type: repeated events for the same object
+    coalesce into a single evaluation — and thus at most one email — when the
+    queue is processed.
+    """
+
+    __tablename__ = "pending_notification"
+    __table_args__ = (UniqueConstraint("alert_type", "object_uuid"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    alert_type: Mapped[str] = mapped_column(String(50))
+    object_uuid: Mapped[UUID]
+    enqueued_at: Mapped[datetime] = mapped_column(server_default=func.now())

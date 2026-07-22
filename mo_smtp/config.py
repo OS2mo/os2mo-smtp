@@ -1,14 +1,18 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
+from datetime import datetime
 from uuid import UUID
 from enum import Enum
 
+from cronsim import CronSim
+from cronsim import CronSimError
 from fastramqpi.config import Settings as FastRAMQPISettings
 from fastramqpi.ramqp.config import AMQPConnectionSettings
 from pydantic import BaseSettings
 from pydantic import Field
 from pydantic import PositiveInt
+from pydantic import validator
 
 
 class SmtpAMQPConnectionSettings(AMQPConnectionSettings):
@@ -52,6 +56,31 @@ class Settings(BaseSettings):
     enable_ituser_events: bool = False
     enable_org_unit_events: bool = False
     enable_related_unit_events: bool = False
+
+    enable_notification_queue: bool = Field(
+        False,
+        description=(
+            "When True, events queue their alerts instead of emailing "
+            "immediately; the queue is processed on notification_send_schedule. "
+            "Repeated events for the same object coalesce into one email."
+        ),
+    )
+    notification_send_schedule: str = Field(
+        "0 1 * * *",
+        description=(
+            "Cron expression for when the notification queue is processed, "
+            "evaluated in the container's local time."
+        ),
+    )
+
+    @validator("notification_send_schedule")
+    def validate_cron_expression(cls, value: str) -> str:
+        try:
+            CronSim(value, datetime.now())
+        except CronSimError as e:
+            # Re-raise as ValueError so pydantic reports it as a validation error.
+            raise ValueError(f"Invalid cron expression {value!r}: {e}") from e
+        return value
 
 
 class EmailSettings(BaseSettings):
