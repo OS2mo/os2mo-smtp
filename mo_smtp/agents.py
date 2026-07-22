@@ -255,8 +255,8 @@ async def _check_and_alert_org_unit_without_relation(
     uuid: UUID,
     mo: depends.GraphQLClient,
     email_client: EmailClient,
-    settings: depends.Settings,
     email_settings: depends.EmailSettings,
+    settings: depends.Settings,
     session: AsyncSession,
 ) -> None:
     """Check if an org unit in the Lønorganisation lacks a relation to
@@ -336,8 +336,10 @@ async def handle_org_unit(
 ) -> None:
     uuid = event.subject
     logger.info("Obtained message", uuid=str(uuid))
+    if settings.enable_notification_queue:
+        return await enqueue(session, "relation", uuid)
     await _check_and_alert_org_unit_without_relation(
-        uuid, mo, email_client, settings, email_settings, session
+        uuid, mo, email_client, email_settings, settings, session
     )
 
 
@@ -378,10 +380,15 @@ async def handle_related_units(
                 for obj in validity.org_units_response.objects:
                     org_unit_uuids.add(obj.uuid)
 
+    # Queued per org unit (the fan-out happens at event time), so a unit touched
+    # by several relation changes is still evaluated — and emailed — only once.
     for org_unit_uuid in org_unit_uuids:
-        await _check_and_alert_org_unit_without_relation(
-            org_unit_uuid, mo, email_client, settings, email_settings, session
-        )
+        if settings.enable_notification_queue:
+            await enqueue(session, "relation", org_unit_uuid)
+        else:
+            await _check_and_alert_org_unit_without_relation(
+                org_unit_uuid, mo, email_client, email_settings, settings, session
+            )
 
 
 @router.post("/rolebinding")
@@ -503,8 +510,9 @@ async def generate_ituser_email(
 
 # What the notification queue runs for each queued object, by alert type.
 # Processors share one signature: (uuid, mo, email_client, email_settings,
-# settings, session). The remaining agents are migrated to the queue one by one.
+# settings, session).
 QUEUE_PROCESSORS = {
     "ituser": generate_ituser_email,
     "manager": generate_manager_removal_email,
+    "relation": _check_and_alert_org_unit_without_relation,
 }

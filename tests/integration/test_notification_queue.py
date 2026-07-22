@@ -174,6 +174,31 @@ async def test_rolebinding_and_ituser_events_coalesce(
 
 
 @pytest.mark.integration_test
+@pytest.mark.envvar({"ENABLE_NOTIFICATION_QUEUE": "true"})
+async def test_org_unit_event_queues_and_flush_sends(
+    root_loen_org: UUID,
+    create_org_unit: Callable[..., Awaitable[UUID]],
+    trigger_event: Callable[[str, UUID], Awaitable[None]],
+    get_sent_mails: Callable[[], Awaitable[list[Mail]]],
+    test_client: AsyncClient,
+) -> None:
+    """With the queue enabled an org_unit event sends nothing; processing the
+    queue sends the missing-relation notice."""
+    loen_root = await create_org_unit(name="Lønorganisation", uuid=root_loen_org)
+    loen_unit = await create_org_unit(name="Løn-enhed", parent=loen_root)
+
+    with capture_logs() as cap_logs:
+        await trigger_event("org_unit", loen_unit)
+    assert "Notification queued" in str(cap_logs)
+    assert await get_sent_mails() == []
+
+    r = await test_client.post("/process_notification_queue")
+    assert r.json() == {"processed": 1, "failed": 0}
+    mail = one(await get_sent_mails())
+    assert mail.subject == "Manglende relation i Lønorganisation"
+
+
+@pytest.mark.integration_test
 async def test_queue_disabled_sends_immediately(
     graphql_client: GraphQLClient,
     active_directory: UUID,
