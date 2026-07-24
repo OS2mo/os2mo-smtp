@@ -153,12 +153,14 @@ async def alert_on_manager_removal(
         return
     elif not to_date and not employee_uuid:  # branch for vacant manager object
         from_date = manager.validity.from_
+        effective = from_date
         # Insert from_date in `to_datetime`, as a vacant from_date equals a terminated manager's to_date
         to_datetime = from_date.replace(tzinfo=None)
         template = load_template("alert_on_vacant_manager.html")
         logger.info("Vacant from (utc+0): ", datetime=to_datetime)
     else:  # branch for a manager object with an end date (possibly future)
         assert to_date is not None  # both branches above require `not to_date`
+        effective = to_date
         # Format the to-date as a datetime object at UTC+0
         to_datetime = to_date.replace(tzinfo=None)
         template = load_template("alert_on_manager_termination.html")
@@ -176,15 +178,7 @@ async def alert_on_manager_removal(
             )
             return
 
-    # Get the current time in UTC+0
-    now = datetime.datetime.utcnow()
-    logger.info("Now (utc+0): ", now=now)
-
-    # Compare the to-date with the current time
-    # Only send a mail if the to-date is in the past
-    if to_datetime > now:
-        logger.info("to_date is in the future. A mail will not be sent")
-        return
+    defer_until_advance_notice(effective, settings)
 
     # Load employee data from MO
     if employee_uuid:
