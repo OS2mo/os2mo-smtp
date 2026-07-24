@@ -1,14 +1,18 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
+from datetime import datetime
 from uuid import UUID
 from enum import Enum
 
+from cronsim import CronSim
+from cronsim import CronSimError
 from fastramqpi.config import Settings as FastRAMQPISettings
 from fastramqpi.ramqp.config import AMQPConnectionSettings
 from pydantic import BaseSettings
 from pydantic import Field
 from pydantic import PositiveInt
+from pydantic import validator
 
 
 class SmtpAMQPConnectionSettings(AMQPConnectionSettings):
@@ -61,6 +65,26 @@ class Settings(BaseSettings):
             "to the event system with an X-Not-Before header."
         ),
     )
+
+    notification_send_schedule: str | None = Field(
+        None,
+        description=(
+            "Cron expression restricting when alerts are sent, e.g. '0 0 * * *' "
+            "to batch all mails at midnight. At any other time, events are "
+            "deferred with an X-Not-Before header and wait in the event system "
+            "until the next scheduled time. Unset means alerts are sent "
+            "immediately. Evaluated in the container's local time."
+        ),
+    )
+
+    @validator("notification_send_schedule")
+    def validate_cron_expression(cls, value: str | None) -> str | None:
+        if value is not None:
+            try:
+                CronSim(value, datetime.now())
+            except CronSimError as e:
+                raise ValueError(f"Invalid cron expression {value!r}: {e}") from e
+        return value
 
 
 class EmailSettings(BaseSettings):

@@ -3,10 +3,35 @@
 
 from datetime import UTC
 from datetime import datetime
+from datetime import timedelta
 from typing import Protocol
 from typing import TypeVar
 
+from cronsim import CronSim
 from more_itertools import only
+
+
+def next_send_time(
+    schedule: str, now: datetime, not_before: datetime | None = None
+) -> datetime | None:
+    """The schedule's next tick to defer to, or None if it is send time.
+
+    It is send time when `now` falls within a tick's minute (a cron tick lasts
+    its whole minute, as in cron itself), or when the event was delivered with
+    the not-before it was previously deferred to and that target falls within
+    the current send cycle — at or after the schedule's most recent tick. The
+    latter lets a batch keep draining past its tick's minute: every event
+    deferred to that tick stays due until the next one.
+    """
+    minute = now.replace(second=0, microsecond=0)
+    tick = next(CronSim(schedule, minute - timedelta(minutes=1)))
+    if tick == minute:
+        return None
+    if not_before is not None:
+        previous_tick = next(CronSim(schedule, now, reverse=True))
+        if previous_tick <= not_before <= now:
+            return None
+    return tick
 
 
 class Validity(Protocol):

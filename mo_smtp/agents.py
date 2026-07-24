@@ -11,6 +11,8 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import Header
 from fastapi import HTTPException
 from fastramqpi.events import Event
 from jinja2 import Environment
@@ -43,12 +45,46 @@ from .dataloaders import get_org_unit_root
 from .dataloaders import get_related_units_data
 from .dataloaders import root_uuid
 from .helpers import extract_current_or_latest_validity
+from .helpers import next_send_time
 from .mail import EmailClient
 from .models import SentAlert
 
 logger = structlog.get_logger()
 
-router = APIRouter()
+
+async def enforce_send_schedule(
+    settings: depends.Settings,
+    x_not_before: str | None = Header(default=None),
+) -> None:
+    """Batch alerts to the send schedule, e.g. nightly.
+
+    Off-schedule events are deferred until the schedule's next tick, so they
+    wait in the event system and are processed together once it arrives. A
+    redelivered event carries the X-Not-Before it was deferred to, which keeps
+    the whole batch due while it drains.
+    """
+    if settings.notification_send_schedule is None:
+        return
+    send_time = next_send_time(
+        settings.notification_send_schedule,
+        datetime.datetime.now().astimezone(),
+        datetime.datetime.fromisoformat(x_not_before) if x_not_before else None,
+    )
+    if send_time is not None:
+        logger.info(
+            "Not send time yet. Deferring the event",
+            not_before=send_time.isoformat(),
+        )
+        raise HTTPException(
+            status_code=425,  # Too Early
+            detail="Outside the notification send schedule",
+            headers={"X-Not-Before": send_time.isoformat()},
+        )
+
+
+# The send schedule applies to every event endpoint: alerts of all types batch
+# to the same schedule.
+router = APIRouter(dependencies=[Depends(enforce_send_schedule)])
 
 
 def load_template(filename):

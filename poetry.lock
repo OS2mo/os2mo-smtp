@@ -788,6 +788,17 @@ files = [
 toml = ["tomli"]
 
 [[package]]
+name = "cronsim"
+version = "2.7"
+description = "Cron expression parser and evaluator"
+category = "main"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "cronsim-2.7-py3-none-any.whl", hash = "sha256:1e1431fa08c51dc7f72e67e571c7c7a09af26420169b607badd4ca9677ffad1e"},
+]
+
+[[package]]
 name = "cryptography"
 version = "46.0.7"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
@@ -3373,4 +3384,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "5b32a967fc5db3367410d57e99118b22b14e3ba1a285897547903bc90b86db8c"
+content-hash = "433063c9a802b48eec3087994ea985d5f6bb2e48a2991b6d4401a6410ea50f3a"
