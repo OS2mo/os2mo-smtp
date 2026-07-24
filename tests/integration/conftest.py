@@ -290,13 +290,18 @@ async def create_manager(
 def create_ituser(
     graphql_client: GraphQLClient,
 ) -> Callable[..., Awaitable[UUID]]:
-    """Return a callable that creates an IT user, scoped to a person or org unit."""
+    """Return a callable that creates an IT user, scoped to a person or org unit.
+
+    Pass `from_` to create an IT-user starting at that date instead of the seed
+    date — e.g. a future-starting IT-user.
+    """
 
     async def inner(
         user_key: str,
         itsystem: UUID,
         person: UUID | None = None,
         org_unit: UUID | None = None,
+        from_: datetime | None = None,
     ) -> UUID:
         r = await graphql_client._testing__create_i_t_user(
             input=ITUserCreateInput(
@@ -304,7 +309,7 @@ def create_ituser(
                 itsystem=itsystem,
                 person=person,
                 org_unit=org_unit,
-                validity=SEED_RA_VALIDITY,
+                validity=RAValidityInput(from_=from_) if from_ else SEED_RA_VALIDITY,
             )
         )
         return r.uuid

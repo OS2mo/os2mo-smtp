@@ -7,7 +7,9 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Iterator
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
+from typing import Protocol
 from uuid import UUID
 from uuid import uuid4
 
@@ -18,6 +20,7 @@ from fastramqpi.context import Context
 from fastramqpi.events import Event
 from fastramqpi.main import FastRAMQPI
 from httpx import AsyncClient
+from httpx import Response
 from pytest import Item
 from pytest import MonkeyPatch
 from respx import MockRouter
@@ -256,21 +259,35 @@ def get_sent_mails(
     return inner
 
 
+class TriggerEvent(Protocol):
+    async def __call__(
+        self, routing_key: str, subject: UUID, not_before: datetime | None = None
+    ) -> Response: ...
+
+
 @pytest.fixture
 def trigger_event(
     test_client: AsyncClient,
-) -> Callable[[str, UUID], Awaitable[None]]:
+) -> TriggerEvent:
     """Return a callable that POSTs a GraphQL event to a listener endpoint.
 
     Drives an agent the same way FastRAMQPI's event system does — over its
-    external HTTP interface — so the handler runs synchronously.
+    external HTTP interface — so the handler runs synchronously. Like the
+    event system it treats the response as data (a 425 means the event was
+    deferred) and returns it; only server errors raise. Pass `not_before` to
+    replay an event that was previously deferred to that time.
     """
 
-    async def inner(routing_key: str, subject: UUID) -> None:
+    async def inner(
+        routing_key: str, subject: UUID, not_before: datetime | None = None
+    ) -> Response:
         r = await test_client.post(
             f"/{routing_key}",
             json=jsonable_encoder(Event(subject=subject, priority=1)),
+            headers={"X-Not-Before": not_before.isoformat()} if not_before else {},
         )
-        r.raise_for_status()
+        if r.status_code >= 500:
+            r.raise_for_status()
+        return r
 
     return inner
