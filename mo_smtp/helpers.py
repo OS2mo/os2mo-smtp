@@ -3,10 +3,43 @@
 
 from datetime import UTC
 from datetime import datetime
+from datetime import timedelta
 from typing import Protocol
 from typing import TypeVar
 
+import structlog
+from fastapi import HTTPException
 from more_itertools import only
+
+from . import depends
+
+logger = structlog.get_logger()
+
+
+class EventDeferred(HTTPException):
+    """Ask the event system to redeliver the event at `not_before`."""
+
+    def __init__(self, not_before: datetime, detail: str) -> None:
+        logger.info(
+            "Deferring the event", reason=detail, not_before=not_before.isoformat()
+        )
+        super().__init__(
+            status_code=425,  # Too Early
+            detail=detail,
+            headers={"X-Not-Before": not_before.isoformat()},
+        )
+
+
+def defer_until_advance_notice(
+    effective: datetime | None, settings: depends.Settings
+) -> None:
+    """Defer the event when a change takes effect further ahead than
+    advance_notice_days — its alert should arrive with that much notice."""
+    if effective is None:
+        return
+    not_before = effective - timedelta(days=settings.advance_notice_days)
+    if datetime.now(UTC) < not_before:
+        raise EventDeferred(not_before, "Change takes effect in the future")
 
 
 class Validity(Protocol):

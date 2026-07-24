@@ -53,6 +53,15 @@ class Settings(BaseSettings):
     enable_org_unit_events: bool = False
     enable_related_unit_events: bool = False
 
+    advance_notice_days: int = Field(
+        7,
+        description=(
+            "How many days before a future-dated change takes effect its alert "
+            "is sent. Events earlier than that are deferred back to the event "
+            "system with an X-Not-Before header. Applies to every alert type."
+        ),
+    )
+
 
 class EmailSettings(BaseSettings):
     class Config:

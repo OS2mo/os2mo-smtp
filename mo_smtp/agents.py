@@ -41,11 +41,13 @@ from .dataloaders import get_org_unit_relations
 from .dataloaders import get_org_unit_root
 from .dataloaders import get_related_units_data
 from .dataloaders import root_uuid
+from .helpers import defer_until_advance_notice
 from .helpers import extract_current_or_latest_validity
 from .mail import EmailClient
 from .models import SentAlert
 
 logger = structlog.get_logger()
+
 
 router = APIRouter()
 
@@ -375,6 +377,7 @@ async def alert_on_rolebinding(
     mo: depends.GraphQLClient,
     email_client: depends.EmailClient,
     email_settings: depends.EmailSettings,
+    settings: depends.Settings,
     session: depends.Session,
 ) -> None:
     uuid = event.subject
@@ -385,7 +388,7 @@ async def alert_on_rolebinding(
         )
         return None
     return await generate_ituser_email(
-        ituser_uuid, mo, email_client, email_settings, session
+        ituser_uuid, mo, email_client, email_settings, settings, session
     )
 
 
@@ -395,10 +398,11 @@ async def alert_on_ituser(
     mo: depends.GraphQLClient,
     email_client: depends.EmailClient,
     email_settings: depends.EmailSettings,
+    settings: depends.Settings,
     session: depends.Session,
 ) -> None:
     return await generate_ituser_email(
-        event.subject, mo, email_client, email_settings, session
+        event.subject, mo, email_client, email_settings, settings, session
     )
 
 
@@ -407,6 +411,7 @@ async def generate_ituser_email(
     mo: depends.GraphQLClient,
     email_client: EmailClient,
     email_settings: depends.EmailSettings,
+    settings: depends.Settings,
     session: AsyncSession,
 ) -> None:
     # Read all validities (not just `current`) so a terminated IT-user is
@@ -429,6 +434,8 @@ async def generate_ituser_email(
             "IT-user has default user_key 'nanoq-brugernavn'. An email will not be sent"
         )
         return
+
+    defer_until_advance_notice(chosen.validity.from_, settings)
 
     # Terminated when the chosen validity has already ended; a future end
     # date still reads as active.
