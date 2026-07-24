@@ -267,6 +267,13 @@ from .org_unit_relations import (
     OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnits,
     OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnitsAncestors,
 )
+from .org_unit_validities import (
+    OrgUnitValidities,
+    OrgUnitValiditiesOrgUnits,
+    OrgUnitValiditiesOrgUnitsObjects,
+    OrgUnitValiditiesOrgUnitsObjectsValidities,
+    OrgUnitValiditiesOrgUnitsObjectsValiditiesValidity,
+)
 from .related_unit_registrations import (
     RelatedUnitRegistrations,
     RelatedUnitRegistrationsRelatedUnits,
@@ -431,6 +438,11 @@ __all__ = [
     "OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnits",
     "OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnits",
     "OrgUnitRelationsOrgUnitsObjectsCurrentRelatedUnitsOrgUnitsAncestors",
+    "OrgUnitValidities",
+    "OrgUnitValiditiesOrgUnits",
+    "OrgUnitValiditiesOrgUnitsObjects",
+    "OrgUnitValiditiesOrgUnitsObjectsValidities",
+    "OrgUnitValiditiesOrgUnitsObjectsValiditiesValidity",
     "OrgUnitsboundaddressfilter",
     "OrgUnitsboundassociationfilter",
     "OrgUnitsboundengagementfilter",

@@ -89,6 +89,7 @@ from .org_unit_address import OrgUnitAddress, OrgUnitAddressOrgUnits
 from .org_unit_ancestors import OrgUnitAncestors, OrgUnitAncestorsOrgUnits
 from .org_unit_data import OrgUnitData, OrgUnitDataOrgUnits
 from .org_unit_relations import OrgUnitRelations, OrgUnitRelationsOrgUnits
+from .org_unit_validities import OrgUnitValidities, OrgUnitValiditiesOrgUnits
 from .related_unit_registrations import (
     RelatedUnitRegistrations,
     RelatedUnitRegistrationsRelatedUnits,
@@ -210,6 +211,26 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitRelations.parse_obj(data).org_units
+
+    async def org_unit_validities(self, uuid: UUID) -> OrgUnitValiditiesOrgUnits:
+        query = gql("""
+            query orgUnitValidities($uuid: UUID!) {
+              org_units(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
+                objects {
+                  validities {
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """)
+        variables: dict[str, object] = {"uuid": uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return OrgUnitValidities.parse_obj(data).org_units
 
     async def institution_address(
         self, uuid: UUID, root: UUID
