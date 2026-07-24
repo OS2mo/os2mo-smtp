@@ -39,8 +39,10 @@ from .dataloaders import get_org_unit_data
 from .dataloaders import get_org_unit_location
 from .dataloaders import get_org_unit_relations
 from .dataloaders import get_org_unit_root
+from .dataloaders import get_org_unit_validities
 from .dataloaders import get_related_units_data
 from .dataloaders import root_uuid
+from .helpers import EventDeferred
 from .helpers import defer_until_advance_notice
 from .helpers import extract_current_or_latest_validity
 from .mail import EmailClient
@@ -239,9 +241,13 @@ async def _check_and_alert_org_unit_without_relation(
     settings: depends.Settings,
     email_settings: depends.EmailSettings,
     session: AsyncSession,
-) -> None:
+) -> datetime.datetime | None:
     """Check if an org unit in the Lønorganisation lacks a relation to
-    an Administrationsorganisation unit, and send an alert email if so."""
+    an Administrationsorganisation unit, and send an alert email if so.
+
+    Returns the time to defer the event to when the org unit only exists in
+    the future — the check needs its active state, so it must wait until the
+    org unit starts. None otherwise."""
     log = logger.bind(uuid=str(uuid))
 
     assert settings.root_loen_org
@@ -250,15 +256,21 @@ async def _check_and_alert_org_unit_without_relation(
     org_unit_data = await get_org_unit_relations(mo, org_unit_uuid=uuid)
 
     if not org_unit_data:
+        validities = await get_org_unit_validities(mo, uuid)
+        now = datetime.datetime.now(datetime.UTC)
+        future_starts = [v.validity.from_ for v in validities if v.validity.from_ > now]
+        if future_starts:
+            log.info("Org unit starts in the future")
+            return min(future_starts)
         log.info("Org unit not found")
-        return
+        return None
 
     # Ancestors are already fetched here, so apply the rule directly rather than
     # get_org_unit_root (which would re-query ancestors per unit).
     current = one(org_unit_data).current
     if root_uuid(uuid, current.ancestors) != root:
         log.info("Org unit is not in the Lønorganisation")
-        return
+        return None
 
     if current.related_units:
         for relation in current.related_units:
@@ -272,7 +284,7 @@ async def _check_and_alert_org_unit_without_relation(
                             SentAlert.object_uuid == uuid,
                         )
                     )
-                    return
+                    return None
 
     existing = await session.scalar(
         select(SentAlert).where(
@@ -282,7 +294,7 @@ async def _check_and_alert_org_unit_without_relation(
     )
     if existing:
         log.info("Alert already sent for this org unit. An email will not be sent")
-        return
+        return None
 
     # TODO: Change this logic, but for now reuse the config
     if settings.alert_manager_removal_use_org_unit_emails:
@@ -304,6 +316,7 @@ async def _check_and_alert_org_unit_without_relation(
         texttype="plain",
     )
     session.add(SentAlert(alert_type="relation", object_uuid=uuid))
+    return None
 
 
 @router.post("/org_unit")
@@ -317,9 +330,11 @@ async def handle_org_unit(
 ) -> None:
     uuid = event.subject
     logger.info("Obtained message", uuid=str(uuid))
-    await _check_and_alert_org_unit_without_relation(
+    not_before = await _check_and_alert_org_unit_without_relation(
         uuid, mo, email_client, settings, email_settings, session
     )
+    if not_before is not None:
+        raise EventDeferred(not_before, "Org unit starts in the future")
 
 
 @router.post("/related_unit")
@@ -359,10 +374,17 @@ async def handle_related_units(
                 for obj in validity.org_units_response.objects:
                     org_unit_uuids.add(obj.uuid)
 
+    # Check every org unit before deferring, so one future-dated unit doesn't
+    # delay the others' alerts. Alerts already sent deduplicate on redelivery.
+    deferrals = []
     for org_unit_uuid in org_unit_uuids:
-        await _check_and_alert_org_unit_without_relation(
+        not_before = await _check_and_alert_org_unit_without_relation(
             org_unit_uuid, mo, email_client, settings, email_settings, session
         )
+        if not_before is not None:
+            deferrals.append(not_before)
+    if deferrals:
+        raise EventDeferred(min(deferrals), "Org unit starts in the future")
 
 
 @router.post("/rolebinding")
