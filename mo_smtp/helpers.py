@@ -9,6 +9,7 @@ from typing import TypeVar
 
 import structlog
 from cronsim import CronSim
+from fastapi import Header
 from fastapi import HTTPException
 from more_itertools import only
 
@@ -41,6 +42,28 @@ def defer_until_advance_notice(
     not_before = effective - timedelta(days=settings.advance_notice_days)
     if datetime.now(UTC) < not_before:
         raise EventDeferred(not_before, "Change takes effect in the future")
+
+
+async def enforce_send_schedule(
+    settings: depends.Settings,
+    x_not_before: str | None = Header(default=None),
+) -> None:
+    """Batch alerts to the send schedule, e.g. nightly.
+
+    Off-schedule events are deferred until the schedule's next tick, so they
+    wait in the event system and are processed together once it arrives. A
+    redelivered event carries the X-Not-Before it was deferred to, which keeps
+    the whole batch due while it drains.
+    """
+    if settings.notification_send_schedule is None:
+        return
+    send_time = next_send_time(
+        settings.notification_send_schedule,
+        datetime.now().astimezone(),
+        datetime.fromisoformat(x_not_before) if x_not_before else None,
+    )
+    if send_time is not None:
+        raise EventDeferred(send_time, "Outside the notification send schedule")
 
 
 def next_send_time(

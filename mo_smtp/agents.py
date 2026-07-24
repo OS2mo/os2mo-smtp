@@ -11,6 +11,7 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter
+from fastapi import Depends
 from fastramqpi.events import Event
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -44,6 +45,7 @@ from .dataloaders import get_related_units_data
 from .dataloaders import root_uuid
 from .helpers import EventDeferred
 from .helpers import defer_until_advance_notice
+from .helpers import enforce_send_schedule
 from .helpers import extract_current_or_latest_validity
 from .mail import EmailClient
 from .models import SentAlert
@@ -51,7 +53,9 @@ from .models import SentAlert
 logger = structlog.get_logger()
 
 
-router = APIRouter()
+# The send schedule applies to every event endpoint: alerts of all types batch
+# to the same schedule.
+router = APIRouter(dependencies=[Depends(enforce_send_schedule)])
 
 
 def load_template(filename):
