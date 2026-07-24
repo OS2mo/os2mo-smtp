@@ -1,15 +1,19 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
+import asyncio
 from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import date
 from datetime import datetime
+from datetime import time
+from datetime import timedelta
 from uuid import UUID
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 import pytest
+from httpx import AsyncClient
 from more_itertools import one
 from structlog.testing import capture_logs
 
@@ -21,6 +25,13 @@ from tests.conftest import Mail
 
 MO_TZ = ZoneInfo("Europe/Copenhagen")
 PAST = datetime(2020, 1, 1, tzinfo=MO_TZ)
+FUTURE = datetime(2999, 1, 1, tzinfo=MO_TZ)
+
+
+def midnight_in_days(days: int) -> datetime:
+    """Midnight (Europe/Copenhagen) `days` days from now — MO requires validity
+    dates to fall at midnight there."""
+    return datetime.combine(date.today() + timedelta(days=days), time(), MO_TZ)
 
 
 @pytest.mark.integration_test
@@ -251,3 +262,113 @@ async def test_ituser_termination_sends_email(
     assert termination.recipients == ["<datagruppen@silkeborg.dk>"]
     assert termination.html is not None
     assert termination.html.strip() == expected_body.strip()
+
+
+@pytest.mark.integration_test
+async def test_ituser_far_future_start_defers_the_event(
+    graphql_client: GraphQLClient,
+    active_directory: UUID,
+    create_ituser: Callable[..., Awaitable[UUID]],
+    test_client: AsyncClient,
+    get_sent_mails: Callable[[], Awaitable[list[Mail]]],
+) -> None:
+    """An IT-user starting further ahead than the advance notice responds 425
+    with X-Not-Before = start date minus the notice period, so the event system
+    redelivers the event around then instead of alerting now."""
+    person = (
+        await graphql_client._testing__create_employee(
+            input=EmployeeCreateInput(given_name="Mick", surname="Jagger")
+        )
+    ).uuid
+    ituser = await create_ituser(
+        user_key="ADUSER-123", itsystem=active_directory, person=person, from_=FUTURE
+    )
+
+    r = await test_client.post("/ituser", json={"subject": str(ituser), "priority": 1})
+
+    assert r.status_code == 425
+    not_before = datetime.fromisoformat(r.headers["X-Not-Before"])
+    assert not_before == FUTURE - timedelta(days=7)
+    assert await get_sent_mails() == []
+
+
+@pytest.mark.integration_test
+async def test_ituser_starting_within_notice_sends_email(
+    graphql_client: GraphQLClient,
+    active_directory: UUID,
+    rolle: UUID,
+    create_ituser: Callable[..., Awaitable[UUID]],
+    create_rolebinding: Callable[..., Awaitable[UUID]],
+    trigger_event: Callable[[str, UUID], Awaitable[None]],
+    get_sent_mails: Callable[[], Awaitable[list[Mail]]],
+) -> None:
+    """An IT-user starting within the advance notice period is alerted right
+    away: the account should be provisioned before the start date."""
+    person = (
+        await graphql_client._testing__create_employee(
+            input=EmployeeCreateInput(given_name="Mick", surname="Jagger")
+        )
+    ).uuid
+    ituser = await create_ituser(
+        user_key="ADUSER-123",
+        itsystem=active_directory,
+        person=person,
+        from_=midnight_in_days(2),
+    )
+    await create_rolebinding(ituser=ituser, role=rolle)
+
+    await trigger_event("ituser", ituser)
+
+    mail = one(await get_sent_mails())
+    assert mail.subject == "En IT-bruger er blevet oprettet i MO"
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar({"ENABLE_ITUSER_EVENTS": "True"})
+async def test_real_event_flow_defers_far_future_and_alerts_soon_start(
+    server: None,  # boots the app, so the listener is declared and fetchers run
+    graphql_client: GraphQLClient,
+    active_directory: UUID,
+    rolle: UUID,
+    create_ituser: Callable[..., Awaitable[UUID]],
+    create_rolebinding: Callable[..., Awaitable[UUID]],
+    get_sent_mails: Callable[[], Awaitable[list[Mail]]],
+) -> None:
+    """End to end through MO's real event system (no fabricated POSTs): a real
+    listener fetches the creation events; the soon-starting IT-user's alert
+    arrives, while the far-future one is deferred and never emails.
+
+    Unique user_keys make the assertions robust against old events already
+    pending on the listener from earlier data.
+    """
+    person = (
+        await graphql_client._testing__create_employee(
+            input=EmployeeCreateInput(given_name="Mick", surname="Jagger")
+        )
+    ).uuid
+    future_key = f"LATER-{uuid4()}"
+    soon_key = f"SOON-{uuid4()}"
+    await create_ituser(
+        user_key=future_key, itsystem=active_directory, person=person, from_=FUTURE
+    )
+    soon_ituser = await create_ituser(
+        user_key=soon_key,
+        itsystem=active_directory,
+        person=person,
+        from_=midnight_in_days(2),
+    )
+    await create_rolebinding(ituser=soon_ituser, role=rolle)
+
+    # Wait for the real event loop (MO -> fetcher -> handler) to deliver the
+    # soon-starting IT-user's alert.
+    for _ in range(90):
+        mails = await get_sent_mails()
+        if any(m.html and soon_key in m.html for m in mails):
+            break
+        await asyncio.sleep(1)
+
+    soon_mail = one(m for m in mails if m.html and soon_key in m.html)
+    assert soon_mail.subject == "En IT-bruger er blevet oprettet i MO"
+    # The far-future IT-user's event was deferred (425), so no mail mentions it.
+    # This holds regardless of delivery order: its handler can only ever defer.
+    assert not any(m.html and future_key in m.html for m in mails)
