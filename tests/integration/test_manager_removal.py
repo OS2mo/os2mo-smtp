@@ -4,6 +4,8 @@
 import json
 from datetime import date
 from datetime import datetime
+from datetime import time
+from datetime import timedelta
 from datetime import timezone
 from uuid import UUID
 from uuid import uuid4
@@ -167,14 +169,16 @@ async def test_vacant_manager_sends_email(
 
 
 @pytest.mark.integration_test
-async def test_future_terminated_manager_is_ignored(
+async def test_future_terminated_manager_defers_the_event(
     graphql_client: GraphQLClient,
     create_org_unit,
     create_manager,
     trigger_event,
     get_sent_mails,
 ) -> None:
-    """A manager terminated in the future sends no email (yet)."""
+    """A manager terminated further ahead than the advance notice responds 425
+    with X-Not-Before = termination date minus the notice period, so the event
+    system redelivers the event around then instead of alerting now."""
     person = (
         await graphql_client._testing__create_employee(
             input=EmployeeCreateInput(given_name="Keith", surname="Richards")
@@ -186,11 +190,50 @@ async def test_future_terminated_manager_is_ignored(
         input=ManagerTerminateInput(uuid=manager, to=FUTURE)
     )
 
-    with capture_logs() as cap_logs:
-        await trigger_event("manager", manager)
+    r = await trigger_event("manager", manager)
 
-    assert "to_date is in the future" in str(cap_logs)
+    assert r.status_code == 425
+    assert r.json()["detail"] == "Change takes effect in the future"
+    not_before = datetime.fromisoformat(r.headers["X-Not-Before"])
+    assert not_before == FUTURE - timedelta(days=7)
     assert await get_sent_mails() == []
+
+
+@pytest.mark.integration_test
+async def test_manager_terminated_within_notice_sends_email(
+    graphql_client: GraphQLClient,
+    create_org_unit,
+    create_manager,
+    trigger_event,
+    get_sent_mails,
+) -> None:
+    """A manager whose termination takes effect within the advance notice
+    period is alerted right away, with the future removal date in the mail."""
+    person = (
+        await graphql_client._testing__create_employee(
+            input=EmployeeCreateInput(given_name="Keith", surname="Richards")
+        )
+    ).uuid
+    org_unit = await create_org_unit(name="Stones", user_key="stones")
+    manager = await create_manager(person=person, org_unit=org_unit)
+    to = datetime.combine(date.today() + timedelta(days=2), time(), MO_TZ)
+    await graphql_client._testing__terminate_manager(
+        input=ManagerTerminateInput(uuid=manager, to=to)
+    )
+
+    await trigger_event("manager", manager)
+
+    expected_body = load_template("alert_on_manager_termination.html").render(
+        context={
+            "name": "Keith Richards",
+            "to_date": to.date(),
+            "location": "Stones",
+            "user_key": "stones",
+        }
+    )
+    mail = one(await get_sent_mails())
+    assert mail.subject == "En medarbejder er blevet fjernet fra lederfanen"
+    assert mail.html.strip() == expected_body.strip()
 
 
 @pytest.mark.integration_test
