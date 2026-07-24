@@ -11,6 +11,7 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter
+from fastapi import HTTPException
 from fastramqpi.events import Event
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -375,6 +376,7 @@ async def alert_on_rolebinding(
     mo: depends.GraphQLClient,
     email_client: depends.EmailClient,
     email_settings: depends.EmailSettings,
+    settings: depends.Settings,
     session: depends.Session,
 ) -> None:
     uuid = event.subject
@@ -385,7 +387,7 @@ async def alert_on_rolebinding(
         )
         return None
     return await generate_ituser_email(
-        ituser_uuid, mo, email_client, email_settings, session
+        ituser_uuid, mo, email_client, email_settings, settings, session
     )
 
 
@@ -395,10 +397,11 @@ async def alert_on_ituser(
     mo: depends.GraphQLClient,
     email_client: depends.EmailClient,
     email_settings: depends.EmailSettings,
+    settings: depends.Settings,
     session: depends.Session,
 ) -> None:
     return await generate_ituser_email(
-        event.subject, mo, email_client, email_settings, session
+        event.subject, mo, email_client, email_settings, settings, session
     )
 
 
@@ -407,6 +410,7 @@ async def generate_ituser_email(
     mo: depends.GraphQLClient,
     email_client: EmailClient,
     email_settings: depends.EmailSettings,
+    settings: depends.Settings,
     session: AsyncSession,
 ) -> None:
     # Read all validities (not just `current`) so a terminated IT-user is
@@ -430,9 +434,28 @@ async def generate_ituser_email(
         )
         return
 
+    # A far-future IT-user is deferred back to the event system: the alert
+    # should arrive ituser_advance_notice_days before the start date, so ask
+    # for the event to be redelivered no earlier than that.
+    now = datetime.datetime.now(datetime.UTC)
+    from_ = chosen.validity.from_
+    if from_ is not None and from_ > now:
+        not_before = from_ - datetime.timedelta(
+            days=settings.ituser_advance_notice_days
+        )
+        if now < not_before:
+            logger.info(
+                "IT-user starts in the future. Deferring the event",
+                not_before=not_before.isoformat(),
+            )
+            raise HTTPException(
+                status_code=425,  # Too Early
+                detail="IT-user starts in the future",
+                headers={"X-Not-Before": not_before.isoformat()},
+            )
+
     # Terminated when the chosen validity has already ended; a future end
     # date still reads as active.
-    now = datetime.datetime.now(datetime.UTC)
     to = chosen.validity.to
     to_date = to.date() if (to is not None and to <= now) else None
     terminated = to_date is not None

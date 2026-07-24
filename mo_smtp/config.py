@@ -53,6 +53,15 @@ class Settings(BaseSettings):
     enable_org_unit_events: bool = False
     enable_related_unit_events: bool = False
 
+    ituser_advance_notice_days: int = Field(
+        7,
+        description=(
+            "How many days before a future-starting IT-user's start date its "
+            "creation alert is sent. Events earlier than that are deferred back "
+            "to the event system with an X-Not-Before header."
+        ),
+    )
+
 
 class EmailSettings(BaseSettings):
     class Config:
