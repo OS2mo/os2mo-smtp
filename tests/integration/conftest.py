@@ -242,6 +242,7 @@ async def create_org_unit(
         user_key: str | None = None,
         parent: UUID | None = None,
         uuid: UUID | None = None,
+        from_: datetime | None = None,
     ) -> UUID:
         r = await graphql_client._testing__create_org_unit(
             input=OrganisationUnitCreateInput(
@@ -250,7 +251,7 @@ async def create_org_unit(
                 user_key=user_key,
                 parent=parent,
                 org_unit_type=afdeling,
-                validity=SEED_RA_VALIDITY,
+                validity=RAValidityInput(from_=from_) if from_ else SEED_RA_VALIDITY,
             )
         )
         return r.uuid
