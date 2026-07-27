@@ -971,14 +971,14 @@ standard = ["email-validator (>=2.0.0)", "fastapi-cli[standard] (>=0.0.5)", "htt
 
 [[package]]
 name = "fastramqpi"
-version = "12.5.0"
+version = "14.6.0"
 description = "Rammearkitektur integrations framework"
 category = "main"
 optional = false
 python-versions = "<4.0,>=3.11"
 files = [
-    {file = "fastramqpi-12.5.0-py3-none-any.whl", hash = "sha256:5ef879ae6e0adbfac779e9be3f24ee88465713a2bd3405bdb47d583f83d499e4"},
-    {file = "fastramqpi-12.5.0.tar.gz", hash = "sha256:74059bb9541a5ec3f8d526a1889c4f639c2cbb5bf60b0e0925de1b523cfe67ad"},
+    {file = "fastramqpi-14.6.0-py3-none-any.whl", hash = "sha256:184d1788619bc2ab55e21e34104d289d75c8f89e54a15beac4c8eb812da870c1"},
+    {file = "fastramqpi-14.6.0.tar.gz", hash = "sha256:bbacb662db8485a1cde2720090375f63d500904e0f9bc19c10e4b0a7bfe0cc9f"},
 ]
 
 [package.dependencies]
@@ -1004,7 +1004,7 @@ pydantic = ">=1,<2"
 pytest = ">=8,<9"
 requests = ">=2,<3"
 respx = ">=0.21,<0.23"
-sentry-sdk = ">=1,<2"
+sentry-sdk = ">=2.47.0,<3.0.0"
 sqlalchemy = ">=2,<3"
 starlette = ">=0.41,<0.42"
 structlog = ">=24,<26"
@@ -2755,23 +2755,25 @@ files = [
 
 [[package]]
 name = "sentry-sdk"
-version = "1.45.1"
+version = "2.66.1"
 description = "Python client for Sentry (https://sentry.io)"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 files = [
-    {file = "sentry_sdk-1.45.1-py2.py3-none-any.whl", hash = "sha256:608887855ccfe39032bfd03936e3a1c4f4fc99b3a4ac49ced54a4220de61c9c1"},
-    {file = "sentry_sdk-1.45.1.tar.gz", hash = "sha256:a16c997c0f4e3df63c0fc5e4207ccb1ab37900433e0f72fef88315d317829a26"},
+    {file = "sentry_sdk-2.66.1-py3-none-any.whl", hash = "sha256:86002793161d9a95ef04bdd8d442e9bfece5d989b755f05d6360215094a7aff6"},
+    {file = "sentry_sdk-2.66.1.tar.gz", hash = "sha256:f882fb08710c5f8bfc603aafa3e901b384009a19cc3f76a572b863392ee81cdc"},
 ]
 
 [package.dependencies]
 certifi = "*"
-urllib3 = {version = ">=1.26.11", markers = "python_version >= \"3.6\""}
+urllib3 = ">=1.26.11"
 
 [package.extras]
 aiohttp = ["aiohttp (>=3.5)"]
+anthropic = ["anthropic (>=0.16)"]
 arq = ["arq (>=0.23)"]
+asyncio = ["httpcore[asyncio] (>=1.0.0,<2.0.0)"]
 asyncpg = ["asyncpg (>=0.23)"]
 beam = ["apache-beam (>=2.12)"]
 bottle = ["bottle (>=0.12.13)"]
@@ -2783,14 +2785,26 @@ django = ["django (>=1.8)"]
 falcon = ["falcon (>=1.4)"]
 fastapi = ["fastapi (>=0.79.0)"]
 flask = ["blinker (>=1.1)", "flask (>=0.11)", "markupsafe"]
-grpcio = ["grpcio (>=1.21.1)"]
+google-genai = ["google-genai (>=1.29.0)"]
+grpcio = ["grpcio (>=1.21.1)", "protobuf (>=3.8.0)"]
+http2 = ["httpcore[http2] (>=1.0.0,<2.0.0)"]
 httpx = ["httpx (>=0.16.0)"]
 huey = ["huey (>=2)"]
+huggingface-hub = ["huggingface_hub (>=0.22)"]
+langchain = ["langchain (>=0.0.210)"]
+langgraph = ["langgraph (>=0.6.6)"]
+launchdarkly = ["launchdarkly-server-sdk (>=9.8.0)"]
+litellm = ["litellm (>=1.77.5,!=1.82.7,!=1.82.8)"]
+litestar = ["litestar (>=2.0.0)"]
 loguru = ["loguru (>=0.5)"]
+mcp = ["mcp (>=1.15.0)"]
 openai = ["openai (>=1.0.0)", "tiktoken (>=0.3.0)"]
+openfeature = ["openfeature-sdk (>=0.7.1)"]
 opentelemetry = ["opentelemetry-distro (>=0.35b0)"]
-opentelemetry-experimental = ["opentelemetry-distro (>=0.40b0,<1.0)", "opentelemetry-instrumentation-aiohttp-client (>=0.40b0,<1.0)", "opentelemetry-instrumentation-django (>=0.40b0,<1.0)", "opentelemetry-instrumentation-fastapi (>=0.40b0,<1.0)", "opentelemetry-instrumentation-flask (>=0.40b0,<1.0)", "opentelemetry-instrumentation-requests (>=0.40b0,<1.0)", "opentelemetry-instrumentation-sqlite3 (>=0.40b0,<1.0)", "opentelemetry-instrumentation-urllib (>=0.40b0,<1.0)"]
-pure-eval = ["asttokens", "executing", "pure-eval"]
+opentelemetry-experimental = ["opentelemetry-distro"]
+opentelemetry-otlp = ["opentelemetry-distro[otlp] (>=0.35b0)"]
+pure-eval = ["asttokens", "executing", "pure_eval"]
+pydantic-ai = ["pydantic-ai (>=1.0.0)"]
 pymongo = ["pymongo (>=3.1)"]
 pyspark = ["pyspark (>=2.4.4)"]
 quart = ["blinker (>=1.1)", "quart (>=0.16.1)"]
@@ -2799,7 +2813,9 @@ sanic = ["sanic (>=0.8)"]
 sqlalchemy = ["sqlalchemy (>=1.2)"]
 starlette = ["starlette (>=0.19.1)"]
 starlite = ["starlite (>=1.48)"]
-tornado = ["tornado (>=5)"]
+statsig = ["statsig (>=0.55.3)"]
+tornado = ["tornado (>=6)"]
+unleash = ["UnleashClient (>=6.0.1)"]
 
 [[package]]
 name = "six"
@@ -3373,4 +3389,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "5b32a967fc5db3367410d57e99118b22b14e3ba1a285897547903bc90b86db8c"
+content-hash = "2b6d64dbabc50c12b571e66a1468631a5976ccfcee0cc9e2711ab486f3e42a00"

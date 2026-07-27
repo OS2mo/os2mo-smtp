@@ -5,19 +5,12 @@ from uuid import UUID
 from enum import Enum
 
 from fastramqpi.config import Settings as FastRAMQPISettings
-from fastramqpi.ramqp.config import AMQPConnectionSettings
 from pydantic import BaseSettings
 from pydantic import Field
 from pydantic import PositiveInt
 
 
-class SmtpAMQPConnectionSettings(AMQPConnectionSettings):
-    queue_prefix = "smtp"
-    prefetch_count = 1  # MO cannot handle too many requests
-
-
 class SmtpFastRAMQPISettings(FastRAMQPISettings):
-    amqp: SmtpAMQPConnectionSettings
     mo_graphql_version: PositiveInt = 22
 
 
