@@ -302,7 +302,7 @@ class GraphQLClient(AsyncBaseClient):
                 objects {
                   validities {
                     user_key
-                    rolebindings {
+                    rolebindings(filter: {from_date: null, to_date: null}) {
                       role {
                         name
                         uuid
