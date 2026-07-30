@@ -211,7 +211,14 @@ async def alert_on_manager_removal(
         "user_key": org_unit.user_key,
     }
 
-    if await _content_alert_already_sent(session, "manager", uuid, template_context):
+    # Dedup on identities. A vacant role has no person, a terminated one does.
+    dedup_content = {
+        "person": employee_uuid,
+        "org_unit": org_unit_uuid,
+        "to_date": to_datetime.date(),
+    }
+
+    if await _content_alert_already_sent(session, "manager", uuid, dedup_content):
         logger.info(
             "An identical alert has already been sent. An email will not be sent"
         )
@@ -235,7 +242,7 @@ async def alert_on_manager_removal(
         message,
         "html",
     )
-    await _record_content_alert(session, "manager", uuid, template_context)
+    await _record_content_alert(session, "manager", uuid, dedup_content)
 
 
 async def _check_and_alert_org_unit_without_relation(
