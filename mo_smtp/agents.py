@@ -42,6 +42,7 @@ from .dataloaders import get_org_unit_root
 from .dataloaders import get_related_units_data
 from .dataloaders import root_uuid
 from .helpers import extract_current_or_latest_validity
+from .helpers import itsystem_name
 from .mail import EmailClient
 from .models import SentAlert
 
@@ -439,11 +440,12 @@ async def generate_ituser_email(
 
     person = one(chosen.person).name
     roles = [one(rb.role) for rb in chosen.rolebindings]
+    itsystem = itsystem_name(chosen.itsystem_response)
 
     template_context = {
         "person": person,
         "ituser": chosen.user_key,
-        "itsystem": chosen.itsystem.name,
+        "itsystem": itsystem,
         "roles": roles,
         "terminated": terminated,
         "to_date": to_date,
@@ -454,7 +456,7 @@ async def generate_ituser_email(
     dedup_content = {
         "person": person,
         "ituser": chosen.user_key,
-        "itsystem": chosen.itsystem.name,
+        "itsystem": itsystem,
         "roles": sorted(r.name for r in roles),
         "to_date": str(to_date),
     }

@@ -317,9 +317,15 @@ class GraphQLClient(AsyncBaseClient):
                       name
                       uuid
                     }
-                    itsystem {
-                      name
+                    itsystem_response {
                       uuid
+                      validities(start: null, end: null) {
+                        name
+                        validity {
+                          from
+                          to
+                        }
+                      }
                     }
                     validity {
                       from
