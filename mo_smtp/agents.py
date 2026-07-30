@@ -11,6 +11,7 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter
+from fastapi.encoders import jsonable_encoder
 from fastramqpi.events import Event
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -62,7 +63,7 @@ def load_template(filename):
 
 def _content_hash(content: dict) -> str:
     return hashlib.sha256(
-        json.dumps(content, sort_keys=True, default=str).encode()
+        json.dumps(jsonable_encoder(content), sort_keys=True).encode()
     ).hexdigest()
 
 
@@ -438,12 +439,12 @@ async def generate_ituser_email(
     to_date = to.date() if (to is not None and to <= now) else None
     terminated = to_date is not None
 
-    person = one(chosen.person).name
+    person = one(chosen.person)
     roles = [one(rb.role) for rb in chosen.rolebindings]
     itsystem = itsystem_name(chosen.itsystem_response)
 
     template_context = {
-        "person": person,
+        "person": person.name,
         "ituser": chosen.user_key,
         "itsystem": itsystem,
         "roles": roles,
@@ -451,14 +452,13 @@ async def generate_ituser_email(
         "to_date": to_date,
     }
 
-    # Dedup on sorted role names plus the termination date, so a termination
-    # re-alerts instead of deduping against the creation.
+    # Dedup on identities; `to_date` makes a termination count as a change.
     dedup_content = {
-        "person": person,
+        "person": person.uuid,
         "ituser": chosen.user_key,
-        "itsystem": itsystem,
-        "roles": sorted(r.name for r in roles),
-        "to_date": str(to_date),
+        "itsystem": chosen.itsystem_response.uuid,
+        "roles": sorted(role.uuid for role in roles),
+        "to_date": to_date,
     }
 
     if await _content_alert_already_sent(session, "ituser", ituser_uuid, dedup_content):
