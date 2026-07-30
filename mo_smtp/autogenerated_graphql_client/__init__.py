@@ -45,6 +45,10 @@ from ._testing__get_related_units_for_org_unit import (
     TestingGetRelatedUnitsForOrgUnitRelatedUnits,
     TestingGetRelatedUnitsForOrgUnitRelatedUnitsObjects,
 )
+from ._testing__terminate_i_t_system import (
+    TestingTerminateITSystem,
+    TestingTerminateITSystemItsystemTerminate,
+)
 from ._testing__terminate_i_t_user import (
     TestingTerminateITUser,
     TestingTerminateITUserItuserTerminate,
@@ -504,6 +508,8 @@ __all__ = [
     "TestingGetRelatedUnitsForOrgUnit",
     "TestingGetRelatedUnitsForOrgUnitRelatedUnits",
     "TestingGetRelatedUnitsForOrgUnitRelatedUnitsObjects",
+    "TestingTerminateITSystem",
+    "TestingTerminateITSystemItsystemTerminate",
     "TestingTerminateITUser",
     "TestingTerminateITUserItuserTerminate",
     "TestingTerminateManager",
