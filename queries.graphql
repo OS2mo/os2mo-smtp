@@ -148,9 +148,15 @@ query ituserValidities($uuid: UUID!) {
           name
           uuid
         }
-        itsystem {
-          name
+        itsystem_response {
           uuid
+          validities(start: null, end: null) {
+            name
+            validity {
+              from
+              to
+            }
+          }
         }
         validity {
           from
@@ -228,6 +234,12 @@ mutation _Testing_TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
 
 mutation _Testing_CreateITSystem($input: ITSystemCreateInput!) {
   itsystem_create(input: $input) {
+    uuid
+  }
+}
+
+mutation _Testing_TerminateITSystem($input: ITSystemTerminateInput!) {
+  itsystem_terminate(input: $input) {
     uuid
   }
 }

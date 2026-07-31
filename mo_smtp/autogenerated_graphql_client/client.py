@@ -46,6 +46,10 @@ from ._testing__get_related_units_for_org_unit import (
     TestingGetRelatedUnitsForOrgUnit,
     TestingGetRelatedUnitsForOrgUnitRelatedUnits,
 )
+from ._testing__terminate_i_t_system import (
+    TestingTerminateITSystem,
+    TestingTerminateITSystemItsystemTerminate,
+)
 from ._testing__terminate_i_t_user import (
     TestingTerminateITUser,
     TestingTerminateITUserItuserTerminate,
@@ -71,6 +75,7 @@ from .input_types import (
     EngagementCreateInput,
     FacetCreateInput,
     ITSystemCreateInput,
+    ITSystemTerminateInput,
     ITUserCreateInput,
     ITUserTerminateInput,
     ManagerCreateInput,
@@ -312,9 +317,15 @@ class GraphQLClient(AsyncBaseClient):
                       name
                       uuid
                     }
-                    itsystem {
-                      name
+                    itsystem_response {
                       uuid
+                      validities(start: null, end: null) {
+                        name
+                        validity {
+                          from
+                          to
+                        }
+                      }
                     }
                     validity {
                       from
@@ -494,6 +505,21 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingCreateITSystem.parse_obj(data).itsystem_create
+
+    async def _testing__terminate_i_t_system(
+        self, input: ITSystemTerminateInput
+    ) -> TestingTerminateITSystemItsystemTerminate:
+        query = gql("""
+            mutation _Testing_TerminateITSystem($input: ITSystemTerminateInput!) {
+              itsystem_terminate(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingTerminateITSystem.parse_obj(data).itsystem_terminate
 
     async def _testing__create_i_t_user(
         self, input: ITUserCreateInput

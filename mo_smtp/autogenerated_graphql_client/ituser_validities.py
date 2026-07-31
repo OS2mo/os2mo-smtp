@@ -22,7 +22,7 @@ class ItuserValiditiesItusersObjectsValidities(BaseModel):
     user_key: str
     rolebindings: list["ItuserValiditiesItusersObjectsValiditiesRolebindings"]
     person: list["ItuserValiditiesItusersObjectsValiditiesPerson"] | None
-    itsystem: "ItuserValiditiesItusersObjectsValiditiesItsystem"
+    itsystem_response: "ItuserValiditiesItusersObjectsValiditiesItsystemResponse"
     validity: "ItuserValiditiesItusersObjectsValiditiesValidity"
 
 
@@ -40,9 +40,25 @@ class ItuserValiditiesItusersObjectsValiditiesPerson(BaseModel):
     uuid: UUID
 
 
-class ItuserValiditiesItusersObjectsValiditiesItsystem(BaseModel):
-    name: str
+class ItuserValiditiesItusersObjectsValiditiesItsystemResponse(BaseModel):
     uuid: UUID
+    validities: list[
+        "ItuserValiditiesItusersObjectsValiditiesItsystemResponseValidities"
+    ]
+
+
+class ItuserValiditiesItusersObjectsValiditiesItsystemResponseValidities(BaseModel):
+    name: str
+    validity: (
+        "ItuserValiditiesItusersObjectsValiditiesItsystemResponseValiditiesValidity"
+    )
+
+
+class ItuserValiditiesItusersObjectsValiditiesItsystemResponseValiditiesValidity(
+    BaseModel
+):
+    from_: datetime | None = Field(alias="from")
+    to: datetime | None
 
 
 class ItuserValiditiesItusersObjectsValiditiesValidity(BaseModel):
@@ -57,5 +73,7 @@ ItuserValiditiesItusersObjectsValidities.update_forward_refs()
 ItuserValiditiesItusersObjectsValiditiesRolebindings.update_forward_refs()
 ItuserValiditiesItusersObjectsValiditiesRolebindingsRole.update_forward_refs()
 ItuserValiditiesItusersObjectsValiditiesPerson.update_forward_refs()
-ItuserValiditiesItusersObjectsValiditiesItsystem.update_forward_refs()
+ItuserValiditiesItusersObjectsValiditiesItsystemResponse.update_forward_refs()
+ItuserValiditiesItusersObjectsValiditiesItsystemResponseValidities.update_forward_refs()
+ItuserValiditiesItusersObjectsValiditiesItsystemResponseValiditiesValidity.update_forward_refs()
 ItuserValiditiesItusersObjectsValiditiesValidity.update_forward_refs()
