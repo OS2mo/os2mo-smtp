@@ -10,14 +10,14 @@ license = "MPL-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastramqpi = "^14"
+fastramqpi = "^15"
 pydantic = "^1.9.0"
 gql = "^3.2.0"
 aiosmtplib = "1.1.7"
 websockets = "^13.0.1" # for ariadne
-pytest-asyncio = "^0.19.0"
-pytest-cov = "^4.0.0"
-pytest-split = "^0.8.0"
+pytest-asyncio = "^1.4"
+pytest-cov = "^5"
+pytest-split = "^0.9"
 strawberry-graphql = "^0.116.4"
 email-validator = "^1.3.0"
 uvicorn = "^0.34"

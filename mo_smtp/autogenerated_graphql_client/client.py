@@ -26,10 +26,6 @@ from ._testing__create_manager import (
     TestingCreateManager,
     TestingCreateManagerManagerCreate,
 )
-from ._testing__create_org_root import (
-    TestingCreateOrgRoot,
-    TestingCreateOrgRootOrgCreate,
-)
 from ._testing__create_org_unit import (
     TestingCreateOrgUnit,
     TestingCreateOrgUnitOrgUnitCreate,
@@ -80,7 +76,6 @@ from .input_types import (
     ITUserTerminateInput,
     ManagerCreateInput,
     ManagerTerminateInput,
-    OrganisationCreate,
     OrganisationUnitCreateInput,
     OrganisationUnitTerminateInput,
     RelatedUnitsUpdateInput,
@@ -340,21 +335,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ItuserValidities.parse_obj(data).itusers
-
-    async def _testing__create_org_root(
-        self, input: OrganisationCreate
-    ) -> TestingCreateOrgRootOrgCreate:
-        query = gql("""
-            mutation _Testing_CreateOrgRoot($input: OrganisationCreate!) {
-              org_create(input: $input) {
-                uuid
-              }
-            }
-            """)
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingCreateOrgRoot.parse_obj(data).org_create
 
     async def _testing__create_facet(
         self, input: FacetCreateInput
