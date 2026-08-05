@@ -24,10 +24,6 @@ from ._testing__create_manager import (
     TestingCreateManager,
     TestingCreateManagerManagerCreate,
 )
-from ._testing__create_org_root import (
-    TestingCreateOrgRoot,
-    TestingCreateOrgRootOrgCreate,
-)
 from ._testing__create_org_unit import (
     TestingCreateOrgUnit,
     TestingCreateOrgUnitOrgUnitCreate,
@@ -501,8 +497,6 @@ __all__ = [
     "TestingCreateITUserItuserCreate",
     "TestingCreateManager",
     "TestingCreateManagerManagerCreate",
-    "TestingCreateOrgRoot",
-    "TestingCreateOrgRootOrgCreate",
     "TestingCreateOrgUnit",
     "TestingCreateOrgUnitOrgUnitCreate",
     "TestingCreateRelatedUnits",
