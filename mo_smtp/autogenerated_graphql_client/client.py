@@ -62,6 +62,14 @@ from ._testing__terminate_rolebinding import (
     TestingTerminateRolebinding,
     TestingTerminateRolebindingRolebindingTerminate,
 )
+from ._testing__update_i_t_system import (
+    TestingUpdateITSystem,
+    TestingUpdateITSystemItsystemUpdate,
+)
+from ._testing__update_org_unit import (
+    TestingUpdateOrgUnit,
+    TestingUpdateOrgUnitOrgUnitUpdate,
+)
 from .async_base_client import AsyncBaseClient
 from .employee_name import EmployeeName, EmployeeNameEmployees
 from .input_types import (
@@ -72,12 +80,14 @@ from .input_types import (
     FacetCreateInput,
     ITSystemCreateInput,
     ITSystemTerminateInput,
+    ITSystemUpdateInput,
     ITUserCreateInput,
     ITUserTerminateInput,
     ManagerCreateInput,
     ManagerTerminateInput,
     OrganisationUnitCreateInput,
     OrganisationUnitTerminateInput,
+    OrganisationUnitUpdateInput,
     RelatedUnitsUpdateInput,
     RoleBindingCreateInput,
     RoleBindingTerminateInput,
@@ -456,6 +466,21 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return TestingCreateEngagement.parse_obj(data).engagement_create
 
+    async def _testing__update_org_unit(
+        self, input: OrganisationUnitUpdateInput
+    ) -> TestingUpdateOrgUnitOrgUnitUpdate:
+        query = gql("""
+            mutation _Testing_UpdateOrgUnit($input: OrganisationUnitUpdateInput!) {
+              org_unit_update(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingUpdateOrgUnit.parse_obj(data).org_unit_update
+
     async def _testing__terminate_org_unit(
         self, input: OrganisationUnitTerminateInput
     ) -> TestingTerminateOrgUnitOrgUnitTerminate:
@@ -485,6 +510,21 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingCreateITSystem.parse_obj(data).itsystem_create
+
+    async def _testing__update_i_t_system(
+        self, input: ITSystemUpdateInput
+    ) -> TestingUpdateITSystemItsystemUpdate:
+        query = gql("""
+            mutation _Testing_UpdateITSystem($input: ITSystemUpdateInput!) {
+              itsystem_update(input: $input) {
+                uuid
+              }
+            }
+            """)
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingUpdateITSystem.parse_obj(data).itsystem_update
 
     async def _testing__terminate_i_t_system(
         self, input: ITSystemTerminateInput
